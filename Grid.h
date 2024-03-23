@@ -57,7 +57,7 @@ public:
         partialUpdateCell(y, x, isVertical);
         if (isVertical){
             int i = 1;
-            while (y + i < cells.size() - 1  && cells[y+i][x].cellType == EMPTY){
+            while (y + i < cells.size()  && cells[y+i][x].cellType == EMPTY){
                 partialUpdateCell(y+i, x, isVertical);
                 i += 1;
             }
@@ -66,16 +66,16 @@ public:
             }
 
             i = 1;
-            while (y-i > 0 && cells[y-i][x].cellType == EMPTY){
+            while (y-i >= 0 && cells[y-i][x].cellType == EMPTY){
                 partialUpdateCell(y-i, x, isVertical);
                 i += 1;
             }
-            if (canBounce && y-i > 0){
+            if (canBounce && y-i >= 0){
                 partialUpdateMoves( x, y-i, isVertical, PLUS, false);
             }
         } else {
             int i = 1;
-            while (x + i < cells[0].size() - 1 && cells[y][x+i].cellType == EMPTY){
+            while (x + i < cells[0].size() && cells[y][x+i].cellType == EMPTY){
                 partialUpdateCell(y, x+i, isVertical);
                 i += 1;
             }
@@ -83,11 +83,11 @@ public:
                 partialUpdateMoves(x+i, y, isVertical, PLUS, false);
             }
             i = 1;
-            while (x - i > 0 && cells[y][x-i].cellType == EMPTY){
+            while (x - i >= 0 && cells[y][x-i].cellType == EMPTY){
                 partialUpdateCell(y, x-i, isVertical);
                 i += 1;
             }
-            if (canBounce && x - i > 0){
+            if (canBounce && x - i >= 0){
                 partialUpdateMoves(x-i, y, isVertical, PLUS, false);
             }
         }
@@ -141,8 +141,10 @@ public:
         if (cells[y][x].isVertical){
             switch (dir) {
                 case PLUS:
+                    if (cells[y][x].northEastSouthWest[2] < n){
+                        return;
+                    }
                     y -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
-
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y - offset + n][x].cellType == EXIT){
                             win = true;
@@ -166,6 +168,9 @@ public:
                     }
                     break;
                 case MINUS:
+                    if (cells[y][x].northEastSouthWest[0] < n){
+                        return;
+                    }
                     y += cells[y][x].carLength - (cells[y][x].nthPiece)-cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y + offset - n][x].cellType == EXIT){
@@ -196,6 +201,9 @@ public:
 
             switch (dir) {
                 case PLUS:
+                    if (cells[y][x].northEastSouthWest[1] < n){
+                        return;
+                    }
                     x -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y][x - offset + n].cellType == EXIT){
@@ -220,6 +228,9 @@ public:
                     }
                     break;
                 case MINUS:
+                    if (cells[y][x].northEastSouthWest[3] < n){
+                        return;
+                    }
                     x += cells[y][x].carLength - (cells[y][x].nthPiece) - cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y][x + offset - n].cellType == EXIT){
@@ -254,14 +265,17 @@ public:
                     partialUpdateMoves(x, y-i, false, dir, true);
                     partialUpdateMoves(x, y-i+n, false, dir, true);
                 }
+
+                partialUpdateMoves(x, y + n, true, dir, true);
+                partialUpdateMoves(x, y-originalCarLength+1 + n, true, dir, true);
             } else {
                 for (int i = 0; i < originalCarLength; ++i) {
                     partialUpdateMoves(x, y+i, false, dir, true);
                     partialUpdateMoves(x, y+i-n, false, dir, true);
                 }
+                partialUpdateMoves(x, y - n, true, dir, true);
+                partialUpdateMoves(x, y+originalCarLength-1 - n, true, dir, true);
             }
-            partialUpdateMoves(x, y, true, dir, true);
-            partialUpdateMoves(x, y+originalCarLength-1, true, dir, true);
 
         }
         else {
@@ -270,15 +284,18 @@ public:
                     partialUpdateMoves(x-i, y, true, dir, true);
                     partialUpdateMoves(x-i+n, y, true, dir, true);
                 }
+                partialUpdateMoves(x + n, y, false, dir, true);
+                partialUpdateMoves(x-originalCarLength+1 + n, y, false, dir, true);
             } else {
                 for (int i = 0; i < originalCarLength; ++i) {
                     partialUpdateMoves(x+i, y, true, dir, true);
                     partialUpdateMoves(x+i-n, y, true, dir, true);
                 }
+                partialUpdateMoves(x - n, y, false, dir, true);
+                partialUpdateMoves(x+originalCarLength-1 - n, y, false, dir, true);
 
             }
-            partialUpdateMoves(x, y, false, dir, true);
-            partialUpdateMoves(x+originalCarLength-1, y, false, dir, true);
+
         }
     }
 };

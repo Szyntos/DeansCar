@@ -27,16 +27,25 @@ Grid parseInputToGrid(const std::string& input);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 Grid grid;
-//std::string input = "6 5 4\n######\n#..ab#\n#..xx#\n#ooyy.\n######";
-std::string input = "8 8 12\n"
-                    "########\n"
-                    "#xab#..#\n"
-                    "#y..xab#\n"
-                    "#xooy...\n"
-                    "#y.xabx#\n"
-                    "#aby..y#\n"
-                    "#ababcz#\n"
-                    "########";
+std::string input = "6 5 4\n######\n#..ab#\n#..xx#\n#ooyy.\n######";
+//std::string input = "8 8 12\n"
+//                    "########\n"
+//                    "#xab#..#\n"
+//                    "#y..xab#\n"
+//                    "#xooy...\n"
+//                    "#y.xabx#\n"
+//                    "#aby..y#\n"
+//                    "#ababcz#\n"
+//                    "########";
+//std::string input = "14 8 12\n"
+//                    "##############\n"
+//                    "#xab.........#\n"
+//                    "#y...ab......#\n"
+//                    "#xoo..x.......\n"
+//                    "#yabx.y......#\n"
+//                    "#abxy.z......#\n"
+//                    "#abyabc......#\n"
+//                    "##############";
 // Vertex Shader source code
 const char* vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
@@ -374,6 +383,20 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         if (gridX >= 0 && gridX < grid.width && gridY >= 0 && gridY < grid.height) {
             const auto& cell = grid.cells[gridY][gridX];
             std::cout << cell.getInfo() << std::endl;
+        }
+    }else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS){
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        double normalizedX = (xpos / SCR_WIDTH) * 2.0 - 1.0;
+        double normalizedY = 1.0 - (ypos / SCR_HEIGHT) * 2.0;
+
+        int gridX = (normalizedX + 1.0) / (2.0 / grid.width);
+        int gridY = (1.0 - normalizedY) / (2.0 / grid.height);
+
+        if (gridX >= 0 && gridX < grid.width && gridY >= 0 && gridY < grid.height) {
+            const auto& cell = grid.cells[gridY][gridX];
+            grid.moveCar(gridX, gridY, 2, grid.cells[gridY][gridX].isNeighbouring == MINUS ? PLUS : MINUS);
         }
     }
 }
