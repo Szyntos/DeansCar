@@ -73,6 +73,12 @@ build CMakeFiles/DeansCar.dir/Cell.cpp.obj: CXX_COMPILER__DeansCar_unscanned_Deb
   OBJECT_DIR = CMakeFiles\DeansCar.dir
   OBJECT_FILE_DIR = CMakeFiles\DeansCar.dir
 
+build CMakeFiles/DeansCar.dir/Car.cpp.obj: CXX_COMPILER__DeansCar_unscanned_Debug C$:/Users/szynt/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Car.cpp || cmake_object_order_depends_target_DeansCar
+  DEP_FILE = CMakeFiles\DeansCar.dir\Car.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\DeansCar.dir
+  OBJECT_FILE_DIR = CMakeFiles\DeansCar.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target DeansCar
@@ -81,7 +87,7 @@ build CMakeFiles/DeansCar.dir/Cell.cpp.obj: CXX_COMPILER__DeansCar_unscanned_Deb
 #############################################
 # Link the executable DeansCar.exe
 
-build DeansCar.exe: CXX_EXECUTABLE_LINKER__DeansCar_Debug CMakeFiles/DeansCar.dir/main.cpp.obj CMakeFiles/DeansCar.dir/glad/glad.c.obj CMakeFiles/DeansCar.dir/Grid.cpp.obj CMakeFiles/DeansCar.dir/Cell.cpp.obj
+build DeansCar.exe: CXX_EXECUTABLE_LINKER__DeansCar_Debug CMakeFiles/DeansCar.dir/main.cpp.obj CMakeFiles/DeansCar.dir/glad/glad.c.obj CMakeFiles/DeansCar.dir/Grid.cpp.obj CMakeFiles/DeansCar.dir/Cell.cpp.obj CMakeFiles/DeansCar.dir/Car.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lglfw3  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\DeansCar.dir

@@ -9,5 +9,7 @@ add_executable(DeansCar main.cpp
         Grid.cpp
         Cell.cpp
         Direction.h
-        CellType.h)
+        CellType.h
+        Car.h
+        Car.cpp)
 target_link_libraries(DeansCar -lglfw3)

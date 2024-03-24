@@ -4,7 +4,6 @@
 
 #ifndef DEANSCAR_CELL_H
 #define DEANSCAR_CELL_H
-
 #include "Direction.h"
 #include <array>
 #include <string>
@@ -23,6 +22,7 @@ public:
     char c = '.';
     int nthPiece = 0;
     int carLength = 0;
+    int carID = -1;
 
     Cell() : cellType(EMPTY), isVertical(false), isNeighbouring(ZERO),
              northEastSouthWest({0, 0, 0, 0}), x(0), y(0) {
@@ -46,6 +46,7 @@ public:
         info += "Character: '" + std::string(1, c) + "'\n";
         info += "nthPiece: '" + std::to_string(nthPiece) + "'\n";
         info += "carLength: '" + std::to_string(carLength) + "'\n";
+        info += "carID: '" + std::to_string(carID) + "'\n";
         return info;
     }
 

@@ -27,7 +27,7 @@ Grid parseInputToGrid(const std::string& input);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 Grid grid;
-std::string input = "6 5 4\n######\n#..ab#\n#..xx#\n#ooyy.\n######";
+//std::string input = "6 5 4\n######\n#..ab#\n#..xx#\n#ooyy.\n######";
 //std::string input = "8 8 12\n"
 //                    "########\n"
 //                    "#xab#..#\n"
@@ -37,6 +37,15 @@ std::string input = "6 5 4\n######\n#..ab#\n#..xx#\n#ooyy.\n######";
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
+std::string input = "8 8 10\n"
+                    "########\n"
+                    "#xab#..#\n"
+                    "#y...ab#\n"
+                    "..oo...#\n"
+                    "#..xabx#\n"
+                    "#aby..y#\n"
+                    "#ababcz#\n"
+                    "########";
 //std::string input = "14 8 12\n"
 //                    "##############\n"
 //                    "#xab.........#\n"
@@ -383,6 +392,9 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         if (gridX >= 0 && gridX < grid.width && gridY >= 0 && gridY < grid.height) {
             const auto& cell = grid.cells[gridY][gridX];
             std::cout << cell.getInfo() << std::endl;
+            for (int i = 0; i < grid.carCount; ++i) {
+                std::cout << grid.cars[i].getInfo() << std::endl;
+            }
         }
     }else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS){
         double xpos, ypos;
@@ -440,7 +452,7 @@ Grid parseInputToGrid(const std::string& input) {
     int W, H, N;
     iss >> W >> H >> N;
 
-    Grid grid(W, H);
+    Grid grid(W, H, N);
 
     std::string line;
     std::getline(iss, line);
@@ -459,7 +471,8 @@ Grid parseInputToGrid(const std::string& input) {
             }
         }
     }
-
+    int kk = 0;
+    bool deansCarInitialized = false;
     for (int i = 0; i < H; ++i) {
         for (int j = 0; j < W; ++j) {
             Cell currentCell = grid.cells[i][j];
@@ -469,6 +482,9 @@ Grid parseInputToGrid(const std::string& input) {
                 case 'a':
                     grid.cells[i][j].nthPiece = 0;
                     grid.cells[i][j].isNeighbouring = PLUS;
+                    grid.cars[kk] = Car(kk, j, i, false, 1);
+                    grid.cells[i][j].carID = kk;
+                    kk++;
                     break;
                 case 'b':
                     grid.cells[i][j].nthPiece = 1;
@@ -480,6 +496,8 @@ Grid parseInputToGrid(const std::string& input) {
                         grid.cells[i][j-1].carLength = 2;
                         grid.cells[i][j].carLength = 2;
                     }
+                    grid.cells[i][j].carID = grid.cells[i][j-1].carID;
+                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
                     break;
                 case 'c':
                     grid.cells[i][j].nthPiece = 2;
@@ -491,6 +509,9 @@ Grid parseInputToGrid(const std::string& input) {
                         grid.cells[i][j-1].carLength = 3;
                         grid.cells[i][j].carLength = 3;
                     }
+                    grid.cells[i][j].carID = grid.cells[i][j-2].carID;
+                    grid.cells[i][j-1].carID = grid.cells[i][j-2].carID;
+                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
                     break;
                 case 'd':
                     grid.cells[i][j].nthPiece = 3;
@@ -499,10 +520,18 @@ Grid parseInputToGrid(const std::string& input) {
                     grid.cells[i][j-2].carLength = 4;
                     grid.cells[i][j-1].carLength = 4;
                     grid.cells[i][j].carLength = 4;
+                    grid.cells[i][j].carID = grid.cells[i][j-3].carID;
+                    grid.cells[i][j-1].carID = grid.cells[i][j-3].carID;
+                    grid.cells[i][j-2].carID = grid.cells[i][j-3].carID;
+                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
                     break;
                 case 'x':
                     grid.cells[i][j].nthPiece = 0;
                     grid.cells[i][j].isNeighbouring = PLUS;
+                    grid.cars[kk] = Car(kk, j, i, true, 1);
+                    std::cout << kk << "\n";
+                    grid.cells[i][j].carID = kk;
+                    kk++;
                     break;
                 case 'y':
                     grid.cells[i][j].nthPiece = 1;
@@ -513,6 +542,8 @@ Grid parseInputToGrid(const std::string& input) {
                         grid.cells[i-1][j].carLength = 2;
                         grid.cells[i][j].carLength = 2;
                     }
+                    grid.cells[i][j].carID = grid.cells[i-1][j].carID;
+                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
                     break;
                 case 'z':
                     grid.cells[i][j].nthPiece = 2;
@@ -524,6 +555,9 @@ Grid parseInputToGrid(const std::string& input) {
                         grid.cells[i-1][j].carLength = 3;
                         grid.cells[i][j].carLength = 3;
                     }
+                    grid.cells[i][j].carID = grid.cells[i-2][j].carID;
+                    grid.cells[i-1][j].carID = grid.cells[i-2][j].carID;
+                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
                     break;
                 case 'w':
                     grid.cells[i][j].nthPiece = 3;
@@ -532,7 +566,13 @@ Grid parseInputToGrid(const std::string& input) {
                     grid.cells[i-2][j].carLength = 4;
                     grid.cells[i-1][j].carLength = 4;
                     grid.cells[i][j].carLength = 4;
+                    grid.cells[i][j].carID = grid.cells[i-3][j].carID;
+                    grid.cells[i-1][j].carID = grid.cells[i-3][j].carID;
+                    grid.cells[i-2][j].carID = grid.cells[i-3][j].carID;
+                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
+                    break;
                 case 'o':
+
                     if (grid.cells[i+1][j].c == 'o' && grid.cells[i-1][j].c == 'o' ||
                             grid.cells[i][j+1].c == 'o' && grid.cells[i][j-1].c == 'o' ){
                         grid.cells[i][j].isNeighbouring = BOTH;
@@ -543,6 +583,12 @@ Grid parseInputToGrid(const std::string& input) {
                     }
 
                     if (grid.cells[i-1][j].c != 'o' && grid.cells[i+1][j].c != 'o' && grid.cells[i][j-1].c != 'o'){
+                        if (!deansCarInitialized){
+                            grid.cars[kk] = Car(kk, j, i, false, 1);
+                            grid.cells[i][j].carID = kk;
+                            kk++;
+                            deansCarInitialized = true;
+                        }
                         grid.cells[i][j].isVertical = false;
                         int k = 0;
                         while (grid.cells[i][j + k].c == 'o'){
@@ -551,12 +597,21 @@ Grid parseInputToGrid(const std::string& input) {
                             k++;
                         }
                         int length = k;
+                        grid.cars[kk-1].length = length;
                         k--;
                         while (grid.cells[i][j+k].c == 'o'){
                             grid.cells[i][j+k].carLength = length;
+                            grid.cells[i][j+k].carID = grid.cells[i][j].carID;
                             k--;
                         }
+
                     } else if (grid.cells[i-1][j].c != 'o' && grid.cells[i][j+1].c != 'o' && grid.cells[i][j-1].c != 'o'){
+                        if (!deansCarInitialized){
+                            grid.cars[kk] = Car(kk, j, i, true, 1);
+                            grid.cells[i][j].carID = kk;
+                            kk++;
+                            deansCarInitialized = true;
+                        }
                         grid.cells[i][j].isVertical = true;
                         int k = 0;
                         while (grid.cells[i+k][j].c == 'o'){
@@ -565,13 +620,16 @@ Grid parseInputToGrid(const std::string& input) {
                             k++;
                         }
                         int length = k;
+                        grid.cars[kk-1].length = length;
                         k--;
                         while (grid.cells[i+k][j].c == 'o'){
                             grid.cells[i+k][j].carLength = length;
+                            grid.cells[i+k][j].carID = grid.cells[i][j].carID;
                             k--;
                         }
 
                     }
+
                     break;
 
             }
