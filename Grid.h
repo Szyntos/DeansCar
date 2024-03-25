@@ -116,54 +116,70 @@ public:
             if (i + 1 <= cells.size() && ((cells[i+1][j].isVertical && (cells[i+1][j].cellType == CAR || cells[i+1][j].cellType == DEANSCAR)) || cells[i+1][j].cellType == EMPTY || cells[i+1][j].cellType == EXIT)){
                 cells[i+1][j].northEastSouthWest[0] = 1 + cells[i][j].northEastSouthWest[0];
                 if (cells[i+1][j].carID != -1){
-                    cars[cells[i+1][j].carID].northEastSouthWest[0] = cells[i+1][j].northEastSouthWest[0];
+                    updateCarNESW(cells[i+1][j].carID);
+//                    cars[cells[i+1][j].carID].northEastSouthWest[0] = 1 + cells[i][j].northEastSouthWest[0];
                 }
             }
             if (i - 1 >= 0 && ((cells[i-1][j].isVertical && (cells[i-1][j].cellType == CAR || cells[i-1][j].cellType == DEANSCAR)) || cells[i-1][j].cellType == EMPTY || cells[i-1][j].cellType == EXIT)){
                 cells[i-1][j].northEastSouthWest[2] = 1 + cells[i][j].northEastSouthWest[2];
                 if (cells[i-1][j].carID != -1){
-                    cars[cells[i-1][j].carID].northEastSouthWest[2] = cells[i-1][j].northEastSouthWest[2];
+                    updateCarNESW(cells[i-1][j].carID);
+//                    cars[cells[i-1][j].carID].northEastSouthWest[2] = 1 + cells[i][j].northEastSouthWest[2];
                 }
             }
         } else {
             if (j - 1 >= 0 && ((!cells[i][j-1].isVertical && (cells[i][j-1].cellType == CAR || cells[i][j-1].cellType == DEANSCAR)) || cells[i][j-1].cellType == EMPTY || cells[i][j-1].cellType == EXIT)){
                 cells[i][j-1].northEastSouthWest[1] = 1 + cells[i][j].northEastSouthWest[1];
                 if (cells[i][j-1].carID != -1){
-                    cars[cells[i][j-1].carID].northEastSouthWest[1] = cells[i][j-1].northEastSouthWest[1];
+                    updateCarNESW(cells[i][j-1].carID);
+//                    cars[cells[i][j-1].carID].northEastSouthWest[1] = 1 + cells[i][j].northEastSouthWest[1];
                 }
             }
             if (j + 1  <= cells[0].size() && ((!cells[i][j+1].isVertical && (cells[i][j+1].cellType == CAR || cells[i][j+1].cellType == DEANSCAR)) || cells[i][j+1].cellType == EMPTY || cells[i][j+1].cellType == EXIT)){
                 cells[i][j+1].northEastSouthWest[3] = 1 + cells[i][j].northEastSouthWest[3];
                 if (cells[i][j+1].carID != -1){
-                    cars[cells[i][j+1].carID].northEastSouthWest[3] = cells[i][j+1].northEastSouthWest[3];
+                    updateCarNESW(cells[i][j+1].carID);
+//                    cars[cells[i][j+1].carID].northEastSouthWest[3] = 1 + cells[i][j].northEastSouthWest[3];
                 }
             }
         }
         if (cells[i][j].cellType == CAR || cells[i][j].cellType == DEANSCAR){
+
             if (j + 1 < cells[0].size()){
                 cells[i][j+1].northEastSouthWest[3] = 0;
-                if (cells[i][j+1].carID != -1){
-                    cars[cells[i][j+1].carID].northEastSouthWest[3] = 0;
+                if (cells[i][j].isNeighbouring != BOTH && cells[i][j+1].carID != -1 && cells[i][j+1].isNeighbouring != BOTH){
+                    updateCarNESW(cells[i][j+1].carID);
                 }
             }
             if (j - 1 >= 0){
                 cells[i][j-1].northEastSouthWest[1] = 0;
-                if (cells[i][j-1].carID != -1){
-                    cars[cells[i][j-1].carID].northEastSouthWest[1] = 0;
+                if (cells[i][j].isNeighbouring != BOTH && cells[i][j-1].carID != -1 && cells[i][j-1].isNeighbouring != BOTH){
+                    updateCarNESW(cells[i][j-1].carID);
                 }
             }
             if (i - 1 >= 0){
                 cells[i-1][j].northEastSouthWest[2] = 0;
-                if (cells[i-1][j].carID != -1){
-                    cars[cells[i-1][j].carID].northEastSouthWest[2] = 0;
+                if (cells[i][j].isNeighbouring != BOTH && cells[i-1][j].carID != -1 && cells[i-1][j].isNeighbouring != BOTH){
+                    updateCarNESW(cells[i-1][j].carID);
                 }
             }
             if (i + 1 < cells.size()){
                 cells[i+1][j].northEastSouthWest[0] = 0;
-                if (cells[i+1][j].carID != -1){
-                    cars[cells[i+1][j].carID].northEastSouthWest[0] = 0;
+                if (cells[i][j].isNeighbouring != BOTH && cells[i+1][j].carID != -1 && cells[i+1][j].isNeighbouring != BOTH){
+                    updateCarNESW(cells[i+1][j].carID);
                 }
             }
+        }
+    }
+
+    void updateCarNESW(int carID){
+        if (cars[carID].isVertical){
+            cars[carID].northEastSouthWest[0] = cells[cars[carID].y][cars[carID].x].northEastSouthWest[0];
+            cars[carID].northEastSouthWest[2] = cells[cars[carID].y+cars[carID].length-1][cars[carID].x].northEastSouthWest[2];
+        }
+        else{
+            cars[carID].northEastSouthWest[3] = cells[cars[carID].y][cars[carID].x].northEastSouthWest[3];
+            cars[carID].northEastSouthWest[1] = cells[cars[carID].y][cars[carID].x+cars[carID].length-1].northEastSouthWest[1];
         }
     }
 
@@ -180,9 +196,9 @@ public:
         if (cells[y][x].isVertical){
             switch (dir) {
                 case PLUS:
-                    if (cells[y][x].northEastSouthWest[2] < n){
-                        return;
-                    }
+//                    if (cells[y][x].northEastSouthWest[2] < n){
+//                        return;
+//                    }
                     y -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y - offset + n][x].cellType == EXIT){
@@ -209,9 +225,9 @@ public:
                     }
                     break;
                 case MINUS:
-                    if (cells[y][x].northEastSouthWest[0] < n){
-                        return;
-                    }
+//                    if (cells[y][x].northEastSouthWest[0] < n){
+//                        return;
+//                    }
                     y += cells[y][x].carLength - (cells[y][x].nthPiece)-cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y + offset - n][x].cellType == EXIT){
@@ -244,9 +260,9 @@ public:
 
             switch (dir) {
                 case PLUS:
-                    if (cells[y][x].northEastSouthWest[1] < n){
-                        return;
-                    }
+//                    if (cells[y][x].northEastSouthWest[1] < n){
+//                        return;
+//                    }
                     x -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y][x - offset + n].cellType == EXIT){
@@ -273,9 +289,9 @@ public:
                     }
                     break;
                 case MINUS:
-                    if (cells[y][x].northEastSouthWest[3] < n){
-                        return;
-                    }
+//                    if (cells[y][x].northEastSouthWest[3] < n){
+//                        return;
+//                    }
                     x += cells[y][x].carLength - (cells[y][x].nthPiece) - cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y][x + offset - n].cellType == EXIT){

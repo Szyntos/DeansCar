@@ -1,21 +1,14 @@
 #include <iostream>
 #include <sstream>
-#include <iostream>
-#include <unordered_map>
 #include "Cell.h"
 #include "Grid.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include "Grid.h"
 #include <cmath>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+#include <cstdlib>
+#include <algorithm>
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -37,24 +30,24 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
-std::string input = "8 8 10\n"
-                    "########\n"
-                    "#xab#..#\n"
-                    "#y...ab#\n"
-                    "..oo...#\n"
-                    "#..xabx#\n"
-                    "#aby..y#\n"
-                    "#ababcz#\n"
-                    "########";
-//std::string input = "14 8 12\n"
-//                    "##############\n"
-//                    "#xab.........#\n"
-//                    "#y...ab......#\n"
-//                    "#xoo..x.......\n"
-//                    "#yabx.y......#\n"
-//                    "#abxy.z......#\n"
-//                    "#abyabc......#\n"
-//                    "##############";
+//std::string input = "8 8 10\n"
+//                    "########\n"
+//                    "#xab#..#\n"
+//                    "#y...ab#\n"
+//                    "..oo...#\n"
+//                    "#..xabx#\n"
+//                    "#aby..y#\n"
+//                    "#ababcz#\n"
+//                    "########";
+std::string input = "14 8 12\n"
+                    "##############\n"
+                    "#xab.........#\n"
+                    "#y...ab......#\n"
+                    "#xoo..x.......\n"
+                    "#yabx.y......#\n"
+                    "#abxy.z......#\n"
+                    "#abyabc......#\n"
+                    "##############";
 // Vertex Shader source code
 const char* vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
@@ -73,6 +66,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
                                    "}\n\0";
 
 int main() {
+    srand((unsigned) time(NULL));
     // GLFW: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -188,6 +182,43 @@ int main() {
     int frame = 0;
     // Render loop
     while (!glfwWindowShouldClose(window)) {
+        if ((frame + 1)%1 == 0 && !grid.win){
+            std::vector<Car> carsThatCanMove;
+            std::copy_if(grid.cars.begin(), grid.cars.end(), std::back_inserter(carsThatCanMove), [](Car& car) {
+                return car.canMove();
+            });
+            int randomCarIndex = std::rand() % carsThatCanMove.size();
+            Car& selectedCar = carsThatCanMove[randomCarIndex];
+            std::vector<int> validIndices;
+            for (size_t i = 0; i < selectedCar.northEastSouthWest.size(); ++i) {
+                if (selectedCar.northEastSouthWest[i] > 0) {
+                    validIndices.push_back(i);
+                }
+            }
+
+            int randomMoveIndex = validIndices[std::rand() % validIndices.size()];
+//            std::cout << randomMoveIndex << "\n";
+
+            switch (randomMoveIndex) {
+                case 0:
+                    grid.moveCar(selectedCar.x, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), MINUS);
+                    break;
+                case 1:
+                    grid.moveCar(selectedCar.x+selectedCar.length-1, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), PLUS);
+                    break;
+                case 2:
+                    grid.moveCar(selectedCar.x, selectedCar.y+selectedCar.length-1, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), PLUS);
+                    break;
+                case 3:
+                    grid.moveCar(selectedCar.x, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), MINUS);
+                    break;
+                default:
+                    break;
+            }
+//            std::cout << selectedCar.getInfo();
+//            std::cout << "Moved car " << selectedCar.ID << " nesw " << randomMoveIndex << " n "<< selectedCar.northEastSouthWest[randomMoveIndex] << "\n";
+
+        }
 
         // Input
         processInput(window);

@@ -39,6 +39,15 @@ public:
         return info;
     }
 
+    bool canMove(){
+        for (int i = 0; i < 4; ++i) {
+            if (northEastSouthWest[i] > 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
     void setNorth(int north){
         northEastSouthWest[0] = north;
     }
