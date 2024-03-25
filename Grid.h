@@ -48,9 +48,9 @@ public:
         for (int i = height-1; i > 0; --i) {
             for (int j = width-1; j > 0; --j) {
                 if (cells[i][j].cellType == EMPTY || cells[i][j].cellType == EXIT){
-                    if (j == 7){
-                        std::cout << " " << i << " " << j<< "\n";
-                    }
+//                    if (j == 7){
+//                        std::cout << " " << i << " " << j<< "\n";
+//                    }
                     updateCell(i, j);
 
                 }
@@ -59,7 +59,7 @@ public:
     }
 
     void partialUpdateMoves(int x, int y, bool isVertical, Direction dir, bool canBounce){
-        std::cout << "update" <<  std::endl;
+//        std::cout << "update" <<  std::endl;
         partialUpdateCell(y, x, isVertical);
         if (isVertical){
             int i = 1;
@@ -147,25 +147,25 @@ public:
 
             if (j + 1 < cells[0].size()){
                 cells[i][j+1].northEastSouthWest[3] = 0;
-                if (cells[i][j].isNeighbouring != BOTH && cells[i][j+1].carID != -1 && cells[i][j+1].isNeighbouring != BOTH){
+                if (cells[i][j+1].carID != -1 && cells[i][j+1].isNeighbouring != BOTH){
                     updateCarNESW(cells[i][j+1].carID);
                 }
             }
             if (j - 1 >= 0){
                 cells[i][j-1].northEastSouthWest[1] = 0;
-                if (cells[i][j].isNeighbouring != BOTH && cells[i][j-1].carID != -1 && cells[i][j-1].isNeighbouring != BOTH){
+                if (cells[i][j-1].carID != -1 && cells[i][j-1].isNeighbouring != BOTH){
                     updateCarNESW(cells[i][j-1].carID);
                 }
             }
             if (i - 1 >= 0){
                 cells[i-1][j].northEastSouthWest[2] = 0;
-                if (cells[i][j].isNeighbouring != BOTH && cells[i-1][j].carID != -1 && cells[i-1][j].isNeighbouring != BOTH){
+                if (cells[i-1][j].carID != -1 && cells[i-1][j].isNeighbouring != BOTH){
                     updateCarNESW(cells[i-1][j].carID);
                 }
             }
             if (i + 1 < cells.size()){
                 cells[i+1][j].northEastSouthWest[0] = 0;
-                if (cells[i][j].isNeighbouring != BOTH && cells[i+1][j].carID != -1 && cells[i+1][j].isNeighbouring != BOTH){
+                if (cells[i+1][j].carID != -1 && cells[i+1][j].isNeighbouring != BOTH){
                     updateCarNESW(cells[i+1][j].carID);
                 }
             }
@@ -187,7 +187,11 @@ public:
         if (!(cells[y][x].cellType == CAR || cells[y][x].cellType == DEANSCAR)){
             return;
         }
-        cars[cells[y][x].carID].move(dir, n);
+//        std::cout << "x " << x << " y " << y << " n " << n << " dir " << dir << "\n";
+//        std::cout << cars[cells[y][x].carID].getInfo() << "\n";
+//        std::cout << cells[y][x].getInfo() << "\n";
+
+
         CellType originalCellType = cells[y][x].cellType;
         bool originalIsVertical = cells[y][x].isVertical;
         int originalX = x;
@@ -196,9 +200,11 @@ public:
         if (cells[y][x].isVertical){
             switch (dir) {
                 case PLUS:
-//                    if (cells[y][x].northEastSouthWest[2] < n){
-//                        return;
-//                    }
+                    if (cells[y][x].northEastSouthWest[2] < n){
+                        std::cout << "Cannot " << x << " " << y << " " << n << " Dir " << dir << "\n";
+                        return;
+                    }
+                    cars[cells[y][x].carID].move(dir, n);
                     y -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y - offset + n][x].cellType == EXIT){
@@ -225,9 +231,12 @@ public:
                     }
                     break;
                 case MINUS:
-//                    if (cells[y][x].northEastSouthWest[0] < n){
-//                        return;
-//                    }
+                    if (cells[y][x].northEastSouthWest[0] < n){
+                        std::cout << "Cannot " << x << " " << y << " " << n << " Dir " << dir << "\n";
+
+                        return;
+                    }
+                    cars[cells[y][x].carID].move(dir, n);
                     y += cells[y][x].carLength - (cells[y][x].nthPiece)-cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y + offset - n][x].cellType == EXIT){
@@ -260,9 +269,12 @@ public:
 
             switch (dir) {
                 case PLUS:
-//                    if (cells[y][x].northEastSouthWest[1] < n){
-//                        return;
-//                    }
+                    if (cells[y][x].northEastSouthWest[1] < n){
+                        std::cout << "Cannot " << x << " " << y << " " << n << " Dir " << dir << "\n";
+
+                        return;
+                    }
+                    cars[cells[y][x].carID].move(dir, n);
                     x -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y][x - offset + n].cellType == EXIT){
@@ -289,9 +301,12 @@ public:
                     }
                     break;
                 case MINUS:
-//                    if (cells[y][x].northEastSouthWest[3] < n){
-//                        return;
-//                    }
+                    if (cells[y][x].northEastSouthWest[3] < n){
+                        std::cout << "Cannot " << x << " " << y << " " << n << " Dir " << dir << "\n";
+
+                        return;
+                    }
+                    cars[cells[y][x].carID].move(dir, n);
                     x += cells[y][x].carLength - (cells[y][x].nthPiece) - cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
                         if (cells[y][x + offset - n].cellType == EXIT){
@@ -324,7 +339,7 @@ public:
         if (originalIsVertical){
             if (dir == PLUS){
                 for (int i = 0; i < originalCarLength; ++i) {
-                    std::cout << x << " " << y - i << std::endl;
+//                    std::cout << x << " " << y - i << std::endl;
                     partialUpdateMoves(x, y-i, false, dir, true);
                     partialUpdateMoves(x, y-i+n, false, dir, true);
                 }

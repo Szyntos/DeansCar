@@ -18,8 +18,11 @@ Grid parseInputToGrid(const std::string& input);
 
 // Settings
 unsigned int SCR_WIDTH = 800;
-unsigned int SCR_HEIGHT = 600;
+unsigned int SCR_HEIGHT = 800;
+bool startSim = false;
+bool isSpacePressed = false;
 Grid grid;
+//std::string input;
 //std::string input = "6 5 4\n######\n#..ab#\n#..xx#\n#ooyy.\n######";
 //std::string input = "8 8 12\n"
 //                    "########\n"
@@ -30,6 +33,24 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
+std::string input = "8 8 12\n"
+                    "########\n"
+                    "#xab#..#\n"
+                    "#y..xab#\n"
+                    "#xooy...\n"
+                    "#y.xabx#\n"
+                    "#aby..y#\n"
+                    "#ababcz#\n"
+                    "########";
+//std::string input = "8 8 12\n"
+//                    "########\n"
+//                    "#.abcab#\n"
+//                    "#abxabx#\n"
+//                    "#ooy..y.\n"
+//                    "#xabc.z#\n"
+//                    "#y..xab#\n"
+//                    "#z..yab#\n"
+//                    "########";
 //std::string input = "8 8 10\n"
 //                    "########\n"
 //                    "#xab#..#\n"
@@ -39,15 +60,15 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
-std::string input = "14 8 12\n"
-                    "##############\n"
-                    "#xab.........#\n"
-                    "#y...ab......#\n"
-                    "#xoo..x.......\n"
-                    "#yabx.y......#\n"
-                    "#abxy.z......#\n"
-                    "#abyabc......#\n"
-                    "##############";
+//std::string input = "14 8 12\n"
+//                    "##############\n"
+//                    "#xab.........#\n"
+//                    "#y...ab......#\n"
+//                    "#xoo..x.......\n"
+//                    "#yabx.y......#\n"
+//                    "#abxy.z......#\n"
+//                    "#abyabc......#\n"
+//                    "##############";
 // Vertex Shader source code
 const char* vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
@@ -182,7 +203,7 @@ int main() {
     int frame = 0;
     // Render loop
     while (!glfwWindowShouldClose(window)) {
-        if ((frame + 1)%1 == 0 && !grid.win){
+        if ((frame + 1)%1 == 0 && !grid.win && startSim){
             std::vector<Car> carsThatCanMove;
             std::copy_if(grid.cars.begin(), grid.cars.end(), std::back_inserter(carsThatCanMove), [](Car& car) {
                 return car.canMove();
@@ -393,9 +414,23 @@ int main() {
 
 // Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    // This needs to persist across calls
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    // Check if spacebar is pressed and was not pressed before
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (!isSpacePressed) {  // First frame where space is detected as pressed
+            startSim = !startSim;  // Toggle the simulation state
+            isSpacePressed = true;  // Mark as pressed
+        }
+    } else {
+        isSpacePressed = false;  // Space is not pressed, reset the flag
+    }
 }
+
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double xpos, ypos;
@@ -423,9 +458,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         if (gridX >= 0 && gridX < grid.width && gridY >= 0 && gridY < grid.height) {
             const auto& cell = grid.cells[gridY][gridX];
             std::cout << cell.getInfo() << std::endl;
-            for (int i = 0; i < grid.carCount; ++i) {
-                std::cout << grid.cars[i].getInfo() << std::endl;
-            }
+            std::cout << grid.cars[cell.carID].getInfo() << std::endl;
+//            for (int i = 0; i < grid.carCount; ++i) {
+//                std::cout << grid.cars[i].getInfo() << std::endl;
+//            }
         }
     }else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS){
         double xpos, ypos;
@@ -560,7 +596,6 @@ Grid parseInputToGrid(const std::string& input) {
                     grid.cells[i][j].nthPiece = 0;
                     grid.cells[i][j].isNeighbouring = PLUS;
                     grid.cars[kk] = Car(kk, j, i, true, 1);
-                    std::cout << kk << "\n";
                     grid.cells[i][j].carID = kk;
                     kk++;
                     break;
