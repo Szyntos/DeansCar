@@ -105,10 +105,6 @@ public:
     }
 
     void partialUpdateCell(int i, int j, bool isVertical){
-        if (j == 7 || j == 6){
-            int k = 6;
-
-        }
         if (cells[i][j].cellType == BARRIER){
             return;
         }
