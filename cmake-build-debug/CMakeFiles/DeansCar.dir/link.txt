@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2023.1.3\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\DeansCar.dir/objects.a
+C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\DeansCar.dir/objects.a @CMakeFiles\DeansCar.dir\objects1
+C:\msys64\mingw64\bin\c++.exe -g -Wl,--whole-archive CMakeFiles\DeansCar.dir/objects.a -Wl,--no-whole-archive -o DeansCar.exe -Wl,--out-implib,libDeansCar.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\DeansCar.dir\linkLibs.rsp

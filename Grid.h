@@ -10,6 +10,9 @@
 #include "Car.h"
 #include <vector>
 #include <iostream>
+#include <cstdlib>
+#include <algorithm>
+
 
 
 class Grid {
@@ -19,6 +22,10 @@ public:
     int carCount;
     std::vector<std::vector<Cell>> cells;
     std::vector<Car> cars;
+    std::vector<Car> verticalCars;
+    std::vector<Car> horizontalCars;
+
+
     bool win = false;
 
     Grid(){
@@ -27,11 +34,22 @@ public:
         carCount = 0;
     }
 
-    Grid(int w, int h, int cars) : width(w), height(h), cells(height, std::vector<Cell>(width)),
-                                    carCount(cars), cars(cars) {
+    Grid(int w, int h, int carCount) : width(w), height(h), cells(height, std::vector<Cell>(width)),
+                                    carCount(carCount), cars(carCount) {
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 cells[i][j] = Cell(j, i);
+            }
+        }
+
+    }
+
+    void splitCars(){
+        for (int i = 0; i < carCount; i++) {
+            if (cars[i].isVertical) {
+                verticalCars.push_back(cars[i]);
+            } else {
+                horizontalCars.push_back(cars[i]);
             }
         }
     }
@@ -372,6 +390,313 @@ public:
 
         }
     }
+
+
+    [[nodiscard]] std::vector<unsigned int> toIntegers() const {
+        std::vector<unsigned int> result;
+        const int bitsInInt = sizeof(unsigned int) * 8; // Total bits in an unsigned int
+
+        // Total number of bits required to represent the grid
+        int totalBits = width * height;
+        // Total number of unsigned ints required to represent the grid
+        int totalInts = (totalBits + bitsInInt - 1) / bitsInInt;
+
+        unsigned int currentInt = 0; // Current integer being constructed
+        int bitPos = 0; // Current bit position in the currentInt
+
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                // Set the bit in currentInt if the cell is full
+                if (cells[i][j].cellType != EMPTY && cells[i][j].cellType != EXIT) {
+                    currentInt |= (1U << bitPos);
+                }
+                bitPos++;
+
+                // If the currentInt is full or we are at the last cell
+                if (bitPos == bitsInInt || (i == height - 1 && j == width - 1)) {
+                    // Save the currentInt and reset for the next
+                    result.push_back(currentInt);
+                    currentInt = 0; // Reset currentInt
+                    bitPos = 0; // Reset bit position
+                }
+            }
+        }
+
+        return result;
+    }
+    void printGridFromHash(const std::vector<unsigned int>& integerHash, int width, int height) {
+        int bitsInInt = sizeof(unsigned int) * 8;
+        int totalBits = width * height;
+
+        // Keep track of the current bit position across all integers
+        int currentBitIndex = 0;
+
+        for (int i = 0; i < height; ++i) {
+            std::string row;
+            for (int j = 0; j < width; ++j) {
+                // Find which integer and bit position within that integer corresponds to this cell
+                int intIndex = currentBitIndex / bitsInInt;
+                int bitPos = currentBitIndex % bitsInInt;
+
+                // Retrieve the correct integer from the hash
+                unsigned int value = integerHash[intIndex];
+
+                // Determine if the current cell is full ('#') or empty ('.') by checking the bit at bitPos
+                if (value & (1U << bitPos)) {
+                    row += '#';
+                } else {
+                    row += '.';
+                }
+
+                // Move to the next bit
+                currentBitIndex++;
+            }
+            // Print the row
+            std::cout << row << std::endl;
+        }
+    }
+
+    [[nodiscard]] std::vector<unsigned int> toIntegersBaseFour() const {
+        std::vector<unsigned int> result;
+        const int bitsInInt = sizeof(unsigned int) * 8; // Total bits in an unsigned int
+
+        // Each cell now needs 2 bits for its state (00, 01, 10, 11)
+        int totalCells = width * height;
+        // Calculate how many cells can be represented in one unsigned int
+        int cellsPerInt = bitsInInt / 2;
+
+        unsigned int currentInt = 0; // Current integer being constructed
+        int cellCount = 0; // Current cell count within the currentInt
+        int state;
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                switch (cells[i][j].cellType) {
+                    case EXIT:
+                    case EMPTY:
+                        state = 0;
+                        break;
+                    case BARRIER:
+                        state = 3;
+                        break;
+                    case CAR:
+                    case DEANSCAR:
+                        if (cells[i][j].isVertical){
+                            state = 2;
+                        } else{
+                            state = 1;
+                        }
+                        break;
+                }
+                // Ensure state is only 2 bits and shift it into the current position
+                currentInt |= (state << (2 * cellCount));
+                cellCount++;
+
+                // If the currentInt is full of cells or we are at the last cell
+                if (cellCount == cellsPerInt || (i == height - 1 && j == width - 1)) {
+                    // Save the currentInt and reset for the next
+                    result.push_back(currentInt);
+                    currentInt = 0; // Reset currentInt
+                    cellCount = 0; // Reset cell count
+                }
+            }
+        }
+
+        return result;
+    }
+
+    void printGridFromHashBaseFour(const std::vector<unsigned int>& integerHash) {
+        int bitsInInt = sizeof(unsigned int) * 8;
+        // Since each cell is represented by 2 bits, totalBits is twice the cell count
+        int totalBits = width * height * 2;
+
+        // Keep track of the current bit position across all integers
+        int currentBitIndex = 0;
+
+        for (int i = 0; i < height; ++i) {
+            std::string row;
+            for (int j = 0; j < width; ++j) {
+                // Calculate which integer and bit position within that integer corresponds to this cell
+                int intIndex = currentBitIndex / bitsInInt;
+                int bitPos = (currentBitIndex % bitsInInt);
+
+                // Retrieve the correct integer from the hash
+                unsigned int value = integerHash[intIndex];
+
+                // Extract the two bits for the current cell's state
+                unsigned int cellState = (value >> bitPos) & 0b11; // Mask the two relevant bits
+
+                // Map the cellState to its character representation
+                switch (cellState) {
+                    case 0:
+                        row += '.';
+                        break;
+                    case 1:
+                        row += 'a';
+                        break;
+                    case 2:
+                        row += 'x';
+                        break;
+                    case 3:
+                        row += '#';
+                        break;
+                }
+
+                // Move to the next cell's bits
+                currentBitIndex += 2; // Increment by 2 because each cell uses 2 bits
+            }
+            // Print the row
+            std::cout << row << std::endl;
+        }
+    }
+
+    std::string getGridFromHashBaseFour(const std::vector<unsigned int>& integerHash) {
+        int bitsInInt = sizeof(unsigned int) * 8;
+        // Since each cell is represented by 2 bits, totalBits is twice the cell count
+        int totalBits = width * height * 2;
+
+        // Initialize the 2D vector with the specified dimensions
+        std::vector<std::vector<char>> grid(height, std::vector<char>(width));
+
+        // Keep track of the current bit position across all integers
+        int currentBitIndex = 0;
+        int horizontalCarIndex = 0;
+        int currentHorizontalLength = 0;
+        int verticalCarIndex = 0;
+        int currentVerticalLength = 0;
+        bool isDean = false;
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                // Calculate which integer and bit position within that integer corresponds to this cell
+                int intIndex = currentBitIndex / bitsInInt;
+                int bitPos = (currentBitIndex % bitsInInt);
+
+                // Retrieve the correct integer from the hash
+                unsigned int value = integerHash[intIndex];
+
+                // Extract the two bits for the current cell's state
+                unsigned int cellState = (value >> bitPos) & 0b11; // Mask the two relevant bits
+
+                // Map the cellState to its character representation and assign to the grid
+                switch (cellState) {
+                    case 0: grid[i][j] = '.'; break;
+                    case 1:
+                        currentHorizontalLength++;
+                        if (horizontalCars[horizontalCarIndex].type == DEANSCAR){
+                            switch (currentHorizontalLength) {
+                                case 1:
+                                case 2:
+                                case 3:
+                                case 4:
+                                    grid[i][j] = 'o';
+                                    break;
+                            }
+                        } else{
+                            switch (currentHorizontalLength) {
+                                case 1:
+                                    grid[i][j] = 'a';
+                                    break;
+                                case 2:
+                                    grid[i][j] = 'b';
+                                    break;
+                                case 3:
+                                    grid[i][j] = 'c';
+                                    break;
+                                case 4:
+                                    grid[i][j] = 'd';
+                                    break;
+                            }
+                        }
+
+                        if (currentHorizontalLength >= horizontalCars[horizontalCarIndex].length){
+                            currentHorizontalLength = 0;
+                            horizontalCarIndex++;
+                        }
+                        break;
+                    case 2:
+                        if (grid[i][j] == 'x' || grid[i][j] == 'y' || grid[i][j] == 'z' || grid[i][j] == 'w'){
+                            break;
+                        }
+                        for (int k = 0; k < verticalCars[verticalCarIndex].length; ++k) {
+                            switch (k) {
+                                case 0:
+                                    grid[i+k][j] = 'x';
+                                    break;
+                                case 1:
+                                    grid[i+k][j] = 'y';
+                                    break;
+                                case 2:
+                                    grid[i+k][j] = 'z';
+                                    break;
+                                case 3:
+                                    grid[i+k][j] = 'w';
+                                    break;
+                            }
+                        }
+                        verticalCarIndex++;
+                        break;
+                    case 3: grid[i][j] = '#'; break;
+                }
+
+                currentBitIndex += 2; // Increment by 2 because each cell uses 2 bits
+            }
+        }
+//        for (const auto& row : grid) {
+//            for (char cell : row) {
+//                std::cout << cell << " ";
+//            }
+//            std::cout << std::endl; // Move to the next line after printing each row
+//        }
+
+        std::string result = std::to_string(grid[0].size()) + " " + std::to_string(grid.size()) + " " + std::to_string(carCount);
+
+        result += "\n";
+        for (const auto& row : grid) {
+            for (char cell : row) {
+                result.push_back(cell);
+            }
+            result.push_back('\n');
+        }
+        std::cout <<result;
+        return result;
+    }
+
+    std::vector<Car> getCarsThatCanMove(){
+        std::vector<Car> carsThatCanMove;
+        std::copy_if(cars.begin(), cars.end(), std::back_inserter(carsThatCanMove), [](Car& car) {
+            return car.canMove();
+        });
+        return carsThatCanMove;
+    };
+
+    std::vector<Move> getPossibleMoves(){
+        std::vector<Move> possibleMoves;
+        std::vector<Car> carsThatCanMove = getCarsThatCanMove();
+        for (const auto & selectedCar : carsThatCanMove) {
+            for (size_t moveIndex = 0; moveIndex < selectedCar.northEastSouthWest.size(); ++moveIndex) {
+                for (int j = 1; j < selectedCar.northEastSouthWest[moveIndex] + 1; j++){
+                    switch (moveIndex) {
+                        case 0:
+                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y, j, MINUS});
+                            break;
+                        case 1:
+                            possibleMoves.push_back(Move{selectedCar.x+selectedCar.length-1, selectedCar.y, j, PLUS});
+                            break;
+                        case 2:
+                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y+selectedCar.length-1, j, PLUS});
+                            break;
+                        case 3:
+                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y, j, MINUS});
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+        }
+        return possibleMoves;
+    }
+
 };
 
 #endif //DEANSCAR_GRID_H

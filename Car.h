@@ -15,6 +15,7 @@ public:
     int y;
     bool isVertical;
     int length;
+    CellType type = CAR;
     Car(){
         ID = 0;
         x = 0;
@@ -36,6 +37,7 @@ public:
         info += "Coordinates: (" + std::to_string(x) + ", " + std::to_string(y) + ")\n";
         info += "Is Vertical: " + std::to_string(isVertical) + "\n";
         info += "Length: " + std::to_string(length) + "\n";
+        info += "CarType: " + std::to_string(type) + "\n";
         return info;
     }
 

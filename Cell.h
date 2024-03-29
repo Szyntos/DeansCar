@@ -4,7 +4,7 @@
 
 #ifndef DEANSCAR_CELL_H
 #define DEANSCAR_CELL_H
-#include "Direction.h"
+#include "Move.h"
 #include <array>
 #include <string>
 #include "CellType.h"

@@ -2,13 +2,13 @@
 #include <sstream>
 #include "Cell.h"
 #include "Grid.h"
+#include "Solver.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
-#include <cstdlib>
-#include <algorithm>
+
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -42,6 +42,7 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
+int moveCeil = 70;
 //std::string input = "8 8 12\n"
 //                    "########\n"
 //                    "#.abcab#\n"
@@ -60,6 +61,7 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
+
 std::string input = "14 8 12\n"
                     "##############\n"
                     "#xab.........#\n"
@@ -192,7 +194,8 @@ int main() {
     // Parse input to grid (Add your input string here)
 
     grid = parseInputToGrid(input);
-    grid.updateMoves();
+    Solver solver = Solver(&grid);
+    std::vector<Move> moves = solver.solveDFS(moveCeil);
 
 
     float verticalCarWidthScale = 0.8f; // Scale factor for the width of vertical cars
@@ -201,41 +204,45 @@ int main() {
     float carHeightOffsetScale = 0.1f;
 
     int frame = 0;
+    Move move;
     // Render loop
     while (!glfwWindowShouldClose(window)) {
         if ((frame + 1)%1 == 0 && !grid.win && startSim){
-            std::vector<Car> carsThatCanMove;
-            std::copy_if(grid.cars.begin(), grid.cars.end(), std::back_inserter(carsThatCanMove), [](Car& car) {
-                return car.canMove();
-            });
-            int randomCarIndex = std::rand() % carsThatCanMove.size();
-            Car& selectedCar = carsThatCanMove[randomCarIndex];
-            std::vector<int> validIndices;
-            for (size_t i = 0; i < selectedCar.northEastSouthWest.size(); ++i) {
-                if (selectedCar.northEastSouthWest[i] > 0) {
-                    validIndices.push_back(i);
-                }
+            for (int i = 1; i < moves.size(); ++i) {
+                move = moves[i];
+                grid.moveCar(move.x, move.y, move.n, move.dir);
             }
-
-            int randomMoveIndex = validIndices[std::rand() % validIndices.size()];
-//            std::cout << randomMoveIndex << "\n";
-
-            switch (randomMoveIndex) {
-                case 0:
-                    grid.moveCar(selectedCar.x, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), MINUS);
-                    break;
-                case 1:
-                    grid.moveCar(selectedCar.x+selectedCar.length-1, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), PLUS);
-                    break;
-                case 2:
-                    grid.moveCar(selectedCar.x, selectedCar.y+selectedCar.length-1, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), PLUS);
-                    break;
-                case 3:
-                    grid.moveCar(selectedCar.x, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), MINUS);
-                    break;
-                default:
-                    break;
-            }
+//            std::vector<Car> carsThatCanMove = grid.getCarsThatCanMove();
+//            grid.getPossibleMoves();
+//
+//            int randomCarIndex = std::rand() % carsThatCanMove.size();
+//            Car& selectedCar = carsThatCanMove[randomCarIndex];
+//            std::vector<int> validIndices;
+//            for (size_t i = 0; i < selectedCar.northEastSouthWest.size(); ++i) {
+//                if (selectedCar.northEastSouthWest[i] > 0) {
+//                    validIndices.push_back(i);
+//                }
+//            }
+//
+//            int randomMoveIndex = validIndices[std::rand() % validIndices.size()];
+////            std::cout << randomMoveIndex << "\n";
+//
+//            switch (randomMoveIndex) {
+//                case 0:
+//                    grid.moveCar(selectedCar.x, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), MINUS);
+//                    break;
+//                case 1:
+//                    grid.moveCar(selectedCar.x+selectedCar.length-1, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), PLUS);
+//                    break;
+//                case 2:
+//                    grid.moveCar(selectedCar.x, selectedCar.y+selectedCar.length-1, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), PLUS);
+//                    break;
+//                case 3:
+//                    grid.moveCar(selectedCar.x, selectedCar.y, fmin(std::rand() %(selectedCar.northEastSouthWest[randomMoveIndex]) + 1, selectedCar.northEastSouthWest[randomMoveIndex]), MINUS);
+//                    break;
+//                default:
+//                    break;
+//            }
 //            std::cout << selectedCar.getInfo();
 //            std::cout << "Moved car " << selectedCar.ID << " nesw " << randomMoveIndex << " n "<< selectedCar.northEastSouthWest[randomMoveIndex] << "\n";
 
@@ -444,6 +451,12 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 
         if (gridX >= 0 && gridX < grid.width && gridY >= 0 && gridY < grid.height) {
             grid.moveCar(gridX, gridY, 1, grid.cells[gridY][gridX].isNeighbouring == MINUS ? PLUS : MINUS);
+            std::vector<unsigned int> hash = grid.toIntegersBaseFour();
+            for (unsigned int value : hash) {
+                std::cout << value << " ";
+            }
+            std::cout << std::endl;
+            grid.getGridFromHashBaseFour(hash);
         }
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
         double xpos, ypos;
@@ -459,6 +472,14 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
             const auto& cell = grid.cells[gridY][gridX];
             std::cout << cell.getInfo() << std::endl;
             std::cout << grid.cars[cell.carID].getInfo() << std::endl;
+//            std::vector<unsigned int> hash = grid.toIntegers();
+//            grid.printGridFromHash(hash, grid.width, grid.height);
+            std::vector<unsigned int> hash = grid.toIntegersBaseFour();
+            for (unsigned int value : hash) {
+                std::cout << value << " ";
+            }
+            std::cout << std::endl;
+            grid.printGridFromHashBaseFour(hash);
 //            for (int i = 0; i < grid.carCount; ++i) {
 //                std::cout << grid.cars[i].getInfo() << std::endl;
 //            }
@@ -651,6 +672,7 @@ Grid parseInputToGrid(const std::string& input) {
                     if (grid.cells[i-1][j].c != 'o' && grid.cells[i+1][j].c != 'o' && grid.cells[i][j-1].c != 'o'){
                         if (!deansCarInitialized){
                             grid.cars[kk] = Car(kk, j, i, false, 1);
+                            grid.cars[kk].type = DEANSCAR;
                             grid.cells[i][j].carID = kk;
                             kk++;
                             deansCarInitialized = true;
@@ -674,6 +696,7 @@ Grid parseInputToGrid(const std::string& input) {
                     } else if (grid.cells[i-1][j].c != 'o' && grid.cells[i][j+1].c != 'o' && grid.cells[i][j-1].c != 'o'){
                         if (!deansCarInitialized){
                             grid.cars[kk] = Car(kk, j, i, true, 1);
+                            grid.cars[kk].type = DEANSCAR;
                             grid.cells[i][j].carID = kk;
                             kk++;
                             deansCarInitialized = true;
@@ -702,7 +725,7 @@ Grid parseInputToGrid(const std::string& input) {
         }
 
     }
-
-
+    grid.splitCars();
+    grid.updateMoves();
     return grid;
 }
