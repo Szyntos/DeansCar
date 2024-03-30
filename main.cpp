@@ -35,7 +35,7 @@ Grid grid;
 //                    "#ababcz#\n"
 //                    "########";
 
-std::string input = "8 8 12\n"
+std::string input = "8 8 60\n"
                     "########\n"
                     "#xab#..#\n"
                     "#y..xab#\n"
@@ -45,8 +45,7 @@ std::string input = "8 8 12\n"
                     "#ababcz#\n"
                     "########";
 
-int moveCeil = 60;
-//std::string input = "8 8 12\n"
+//std::string input = "8 8 60\n"
 //                    "########\n"
 //                    "#.abcab#\n"
 //                    "#abxabx#\n"
@@ -65,7 +64,7 @@ int moveCeil = 60;
 //                    "#ababcz#\n"
 //                    "########";
 
-//std::string input = "14 8 12\n"
+//std::string input = "14 8 5\n"
 //                    "##############\n"
 //                    "#xab.........#\n"
 //                    "#y...ab......#\n"
@@ -74,6 +73,18 @@ int moveCeil = 60;
 //                    "#abxy.z......#\n"
 //                    "#abyabc......#\n"
 //                    "##############";
+//std::string input = "8 8 2\n"
+//                    "########\n"
+//                    "##abxxx#\n"
+//                    "#...yyy#\n"
+//                    "#oo..x..\n"
+//                    "#xxaby.#\n"
+//                    "#yy.xz.#\n"
+//                    "#ab.y..#\n"
+//                    "########";
+
+
+
 // Vertex Shader source code
 const char* vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
@@ -92,7 +103,20 @@ const char* fragmentShaderSource = "#version 330 core\n"
                                    "}\n\0";
 
 int main() {
+
+
     srand((unsigned) time(NULL));
+    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<Move> moves;
+    grid.parseInputToGrid(input);
+    Solver solver = Solver(&grid);
+    moves = solver.solveDFS();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Execution time: " << elapsed.count() << " s\n";
+    grid.parseInputToGrid(input);
+    solver.aStar.movesListToOutput(moves, grid);
     // GLFW: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -195,15 +219,7 @@ int main() {
     glBindVertexArray(0);
 
     // Parse input to grid (Add your input string here)
-    std::vector<Move> moves;
-    grid.parseInputToGrid(input);
-    Solver solver = Solver(&grid);
-    auto start = std::chrono::high_resolution_clock::now();
-    moves = solver.solveDFS(moveCeil);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Execution time: " << elapsed.count() << " s\n";
-    grid.parseInputToGrid(input);
+
 
 
     float verticalCarWidthScale = 0.8f; // Scale factor for the width of vertical cars
@@ -222,7 +238,7 @@ int main() {
         if ((frame + 1)%2 == 0 && !grid.isWon() && startSim){
 
             if (moveCountWon < moves.size()){
-                std::cout << "xD\n";
+//                std::cout << "xD\n";
                 move = moves[moveCountWon];
                 grid.moveCar(move.x, move.y, move.n, move.dir);
                 moveCountWon++;

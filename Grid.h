@@ -27,6 +27,7 @@ public:
     std::vector<Car> horizontalCars;
     int exitX = 0;
     int exitY = 0;
+    int movesLimit = 0;
 
 
     bool win = false;
@@ -85,6 +86,9 @@ public:
 
     void partialUpdateMoves(int x, int y, bool isVertical, Direction dir, bool canBounce){
 //        std::cout << "update" <<  std::endl;
+        if (x < 0 || x >= width || y < 0 || y >= height){
+            return;
+        }
         partialUpdateCell(y, x, isVertical);
         if (isVertical){
             int i = 1;
@@ -674,7 +678,7 @@ public:
 //            std::cout << std::endl; // Move to the next line after printing each row
 //        }
 
-        std::string result = std::to_string(grid[0].size()) + " " + std::to_string(grid.size()) + " " + std::to_string(carCount);
+        std::string result = std::to_string(grid[0].size()) + " " + std::to_string(grid.size()) + " " + std::to_string(movesLimit);
 
         result += "\n";
         for (const auto& row : grid) {
@@ -703,16 +707,16 @@ public:
                 for (int j = 1; j < selectedCar.northEastSouthWest[moveIndex] + 1; j++){
                     switch (moveIndex) {
                         case 0:
-                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y, j, MINUS});
+                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y, j, MINUS, selectedCar.ID, 'U'});
                             break;
                         case 1:
-                            possibleMoves.push_back(Move{selectedCar.x+selectedCar.length-1, selectedCar.y, j, PLUS});
+                            possibleMoves.push_back(Move{selectedCar.x+selectedCar.length-1, selectedCar.y, j, PLUS, selectedCar.ID, 'R'});
                             break;
                         case 2:
-                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y+selectedCar.length-1, j, PLUS});
+                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y+selectedCar.length-1, j, PLUS, selectedCar.ID, 'D'});
                             break;
                         case 3:
-                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y, j, MINUS});
+                            possibleMoves.push_back(Move{selectedCar.x, selectedCar.y, j, MINUS, selectedCar.ID, 'L'});
                             break;
                         default:
                             break;
@@ -752,13 +756,11 @@ public:
 
         width = W;
         height = H;
-        carCount = N;
-
+        movesLimit = N;
 
         cells.clear(); // Clear existing cells
         cells.resize(height, std::vector<Cell>(width)); // Create new cells with default Cell objects
-        cars.clear(); // Clear existing cars
-        cars.resize(carCount);
+
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 cells[i][j] = Cell(j, i);
@@ -767,11 +769,14 @@ public:
 
         std::string line;
         std::getline(iss, line);
-
+        int carsCount = 1;
         for (int i = 0; i < H; ++i) {
             std::getline(iss, line);
             for (int j = 0; j < W; ++j) {
                 char c = line[j];
+                if (c == 'x' || c == 'a'){
+                    carsCount++;
+                }
                 cells[i][j].cellType = charToCellType(c);
                 if (c == 'x' || c == 'y' || c == 'z' || c == 'w') {
                     cells[i][j].isVertical = true;
@@ -784,6 +789,9 @@ public:
                 }
             }
         }
+        carCount = carsCount;
+        cars.clear(); // Clear existing cars
+        cars.resize(carCount);
         int kk = 0;
         bool deansCarInitialized = false;
         for (int i = 0; i < H; ++i) {
@@ -953,6 +961,8 @@ public:
         splitCars();
         updateMoves();
     }
+
+
 
 };
 

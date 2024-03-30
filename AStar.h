@@ -23,7 +23,7 @@ struct Node {
     float fCost = 0;
     Node* parent = nullptr;
     Grid* originalGrid = nullptr;
-    Move prevMove = {};
+    Move prevMove = {0, 0, 0, BOTH, -1};
 
     std::vector<unsigned int> hash;
 
@@ -108,10 +108,10 @@ public:
 
         return {}; // Return empty path if no path is found
     }
-    bool dfs(Node* node, std::vector<Move>& path, std::unordered_set<Node*, NodeHasher, NodeEqual>& visited, int maxPathLength) {
+    bool dfs(Node* node, std::vector<Move>& path, std::unordered_set<Node*, NodeHasher, NodeEqual>& visited) {
         if (visited.find(node) != visited.end()) return false;
 
-        if (path.size() > maxPathLength){
+        if (path.size() > node->originalGrid->movesLimit){
             return false;
         }
 //        std::cout << node->originalGrid->getGridFromHashBaseFour(node->hash) << "aa\n\n";
@@ -128,9 +128,13 @@ public:
         }
         int neighbourCount = 0;
         Node neighbourNode;
+        int prevCarID = node->prevMove.carID;
         // Recursively search in unvisited neighbours
         for (Move neighbour : node->getNeighbours()) {
 
+            if (neighbour.carID == prevCarID &&( (neighbour.dir == MINUS && node->prevMove.dir == PLUS) || (neighbour.dir == PLUS && node->prevMove.dir == MINUS))){
+                continue;
+            }
             if (neighbourCount == 0){
                 neighbourCount++;
                 node->originalGrid->moveCar(neighbour.x, neighbour.y, neighbour.n, neighbour.dir);
@@ -141,7 +145,7 @@ public:
                 node->originalGrid->moveCar(neighbour.x, neighbour.y, neighbour.n, neighbour.dir);
                 neighbourNode = Node(node->originalGrid, neighbour);
             }
-            if (dfs(&neighbourNode, path, visited, maxPathLength)) {
+            if (dfs(&neighbourNode, path, visited)) {
                 return true; // If target is found in a subtree, return true to propagate the success back up
             }
 
@@ -151,6 +155,24 @@ public:
         path.pop_back();
         return false;
     }
+
+    void movesListToOutput(std::vector<Move>& moves, Grid& grid){
+        std::cout << moves.size()-1 << "\n";
+        int i = 0;
+        for (Move move: moves) {
+            if (i == 0){
+                i++;
+                continue;
+            }
+            if (i == moves.size()-1){
+                std::cout << move.x << " " << move.y << " " << move.letter << " " << move.n + 1 << "\n";
+            }else{
+                std::cout << move.x << " " << move.y << " " << move.letter << " " << move.n << "\n";
+            }
+            i++;
+        }
+    }
+
 
 private:
     std::vector<Node*> openList;

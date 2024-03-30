@@ -14,6 +14,8 @@ public:
     int y;
     int n;
     Direction dir;
+    int carID;
+    char letter;
 };
 
 

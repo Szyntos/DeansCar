@@ -20,13 +20,13 @@ public:
     }
 
     explicit Solver(Grid* grid): grid(grid){
-        startNode = Node(grid, {0, 0, 0, PLUS});
+        startNode = Node(grid, {0, 0, 0, PLUS, -1});
     }
 
-    std::vector<Move> solveDFS(int maxPathLength){
+    std::vector<Move> solveDFS(){
         std::vector<Move> path;
         std::unordered_set<Node*, NodeHasher, NodeEqual> visited;
-        bool found = aStar.dfs(&startNode, path, visited, maxPathLength);
+        bool found = aStar.dfs(&startNode, path, visited);
         if (found){
             for (const auto& move : path) {
                 std::cout << "Move - x: " << move.x << ", y: " << move.y
