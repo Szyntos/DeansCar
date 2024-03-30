@@ -161,6 +161,8 @@ CMakeFiles/DeansCar.dir/Solver.cpp.obj: \
  C:/msys64/mingw64/include/c++/13.1.0/bits/stl_tempbuf.h \
  C:/msys64/mingw64/include/c++/13.1.0/pstl/glue_algorithm_defs.h \
  C:/msys64/mingw64/include/c++/13.1.0/pstl/execution_defs.h \
+ C:/msys64/mingw64/include/c++/13.1.0/sstream \
+ C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc \
  C:\Users\Szymon\Desktop\Programming_Playground\Projects_For_Uni\DeansCar\AStar.h \
  C:/msys64/mingw64/include/c++/13.1.0/queue \
  C:/msys64/mingw64/include/c++/13.1.0/deque \

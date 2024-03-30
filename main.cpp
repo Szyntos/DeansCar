@@ -8,6 +8,7 @@
 #include <cmath>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+#include <chrono>
 
 
 // Function prototypes
@@ -33,16 +34,18 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
-//std::string input = "8 8 12\n"
-//                    "########\n"
-//                    "#xab#..#\n"
-//                    "#y..xab#\n"
-//                    "#xooy...\n"
-//                    "#y.xabx#\n"
-//                    "#aby..y#\n"
-//                    "#ababcz#\n"
-//                    "########";
-int moveCeil = 70;
+
+std::string input = "8 8 12\n"
+                    "########\n"
+                    "#xab#..#\n"
+                    "#y..xab#\n"
+                    "#xooy...\n"
+                    "#y.xabx#\n"
+                    "#aby..y#\n"
+                    "#ababcz#\n"
+                    "########";
+
+int moveCeil = 60;
 //std::string input = "8 8 12\n"
 //                    "########\n"
 //                    "#.abcab#\n"
@@ -62,15 +65,15 @@ int moveCeil = 70;
 //                    "#ababcz#\n"
 //                    "########";
 
-std::string input = "14 8 12\n"
-                    "##############\n"
-                    "#xab.........#\n"
-                    "#y...ab......#\n"
-                    "#xoo..x.......\n"
-                    "#yabx.y......#\n"
-                    "#abxy.z......#\n"
-                    "#abyabc......#\n"
-                    "##############";
+//std::string input = "14 8 12\n"
+//                    "##############\n"
+//                    "#xab.........#\n"
+//                    "#y...ab......#\n"
+//                    "#xoo..x.......\n"
+//                    "#yabx.y......#\n"
+//                    "#abxy.z......#\n"
+//                    "#abyabc......#\n"
+//                    "##############";
 // Vertex Shader source code
 const char* vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
@@ -192,10 +195,15 @@ int main() {
     glBindVertexArray(0);
 
     // Parse input to grid (Add your input string here)
-
-    grid = parseInputToGrid(input);
+    std::vector<Move> moves;
+    grid.parseInputToGrid(input);
     Solver solver = Solver(&grid);
-    std::vector<Move> moves = solver.solveDFS(moveCeil);
+    auto start = std::chrono::high_resolution_clock::now();
+    moves = solver.solveDFS(moveCeil);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Execution time: " << elapsed.count() << " s\n";
+    grid.parseInputToGrid(input);
 
 
     float verticalCarWidthScale = 0.8f; // Scale factor for the width of vertical cars
@@ -206,11 +214,18 @@ int main() {
     int frame = 0;
     Move move;
     // Render loop
+    int moveCountWon = 0;
+    grid.win = false;
     while (!glfwWindowShouldClose(window)) {
-        if ((frame + 1)%1 == 0 && !grid.win && startSim){
-            for (int i = 1; i < moves.size(); ++i) {
-                move = moves[i];
+
+
+        if ((frame + 1)%2 == 0 && !grid.isWon() && startSim){
+
+            if (moveCountWon < moves.size()){
+                std::cout << "xD\n";
+                move = moves[moveCountWon];
                 grid.moveCar(move.x, move.y, move.n, move.dir);
+                moveCountWon++;
             }
 //            std::vector<Car> carsThatCanMove = grid.getCarsThatCanMove();
 //            grid.getPossibleMoves();
@@ -430,7 +445,8 @@ void processInput(GLFWwindow* window) {
     // Check if spacebar is pressed and was not pressed before
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (!isSpacePressed) {  // First frame where space is detected as pressed
-            startSim = !startSim;  // Toggle the simulation state
+            startSim = !startSim;
+            std::cout << "startSim " << startSim << "\n"; // Toggle the simulation state
             isSpacePressed = true;  // Mark as pressed
         }
     } else {
@@ -456,7 +472,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
                 std::cout << value << " ";
             }
             std::cout << std::endl;
-            grid.getGridFromHashBaseFour(hash);
+            std::cout << grid.getGridFromHashBaseFour(hash) << "\n";
         }
     } else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
         double xpos, ypos;

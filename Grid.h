@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <sstream>
 
 
 
@@ -24,6 +25,8 @@ public:
     std::vector<Car> cars;
     std::vector<Car> verticalCars;
     std::vector<Car> horizontalCars;
+    int exitX = 0;
+    int exitY = 0;
 
 
     bool win = false;
@@ -52,6 +55,10 @@ public:
                 horizontalCars.push_back(cars[i]);
             }
         }
+    }
+
+    bool isWon(){
+        return cells[exitY][exitX].cellType != EXIT;
     }
 
     void updateMoves(){
@@ -564,6 +571,8 @@ public:
         int verticalCarIndex = 0;
         int currentVerticalLength = 0;
         bool isDean = false;
+        int toFind = 0;
+        std::vector<int> verticalCarIdOnEachColumn(width, 0);
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 // Calculate which integer and bit position within that integer corresponds to this cell
@@ -616,6 +625,18 @@ public:
                         if (grid[i][j] == 'x' || grid[i][j] == 'y' || grid[i][j] == 'z' || grid[i][j] == 'w'){
                             break;
                         }
+                        toFind = 0;
+                        for (int z = 0; z < verticalCars.size(); z++){
+                            if (verticalCars[z].x == j){
+                                if (toFind == verticalCarIdOnEachColumn[j]){
+                                    verticalCarIndex = z;
+                                    verticalCarIdOnEachColumn[j]++;
+                                    break;
+                                }
+                                toFind++;
+                            }
+                        }
+                        verticalCarIdOnEachColumn[j]++;
                         for (int k = 0; k < verticalCars[verticalCarIndex].length; ++k) {
                             switch (k) {
                                 case 0:
@@ -632,10 +653,16 @@ public:
                                     break;
                             }
                         }
-                        verticalCarIndex++;
                         break;
                     case 3: grid[i][j] = '#'; break;
                 }
+//                for (const auto& row : grid) {
+//                    for (char cell : row) {
+//                        std::cout << cell << " ";
+//                    }
+//                    std::cout << std::endl; // Move to the next line after printing each row
+//                }
+//                std::cout << "\n\n";
 
                 currentBitIndex += 2; // Increment by 2 because each cell uses 2 bits
             }
@@ -656,7 +683,7 @@ public:
             }
             result.push_back('\n');
         }
-        std::cout <<result;
+//        std::cout <<result;
         return result;
     }
 
@@ -695,6 +722,236 @@ public:
 
         }
         return possibleMoves;
+    }
+
+    CellType charToCellType(char c) {
+        switch (c) {
+            case '.':
+                return EMPTY;
+            case '#':
+                return BARRIER;
+            case 'a':
+            case 'b':
+            case 'c':
+            case 'd':
+            case 'x':
+            case 'y':
+            case 'z':
+            case 'w':
+                return CAR;
+            case 'o':
+                return DEANSCAR;
+            default:
+                return EMPTY; // Default case to handle unexpected characters
+        }
+    }
+    void parseInputToGrid(const std::string& input) {
+        std::istringstream iss(input);
+        int W, H, N;
+        iss >> W >> H >> N;
+
+        width = W;
+        height = H;
+        carCount = N;
+
+
+        cells.clear(); // Clear existing cells
+        cells.resize(height, std::vector<Cell>(width)); // Create new cells with default Cell objects
+        cars.clear(); // Clear existing cars
+        cars.resize(carCount);
+        for (int i = 0; i < height; ++i) {
+            for (int j = 0; j < width; ++j) {
+                cells[i][j] = Cell(j, i);
+            }
+        }
+
+        std::string line;
+        std::getline(iss, line);
+
+        for (int i = 0; i < H; ++i) {
+            std::getline(iss, line);
+            for (int j = 0; j < W; ++j) {
+                char c = line[j];
+                cells[i][j].cellType = charToCellType(c);
+                if (c == 'x' || c == 'y' || c == 'z' || c == 'w') {
+                    cells[i][j].isVertical = true;
+                }
+                cells[i][j].c = c;
+                if (c == '.' && (i == 0 || i == H - 1 || j == 0 || j == W - 1)){
+                    cells[i][j].cellType = EXIT;
+                    exitX = j;
+                    exitY = i;
+                }
+            }
+        }
+        int kk = 0;
+        bool deansCarInitialized = false;
+        for (int i = 0; i < H; ++i) {
+            for (int j = 0; j < W; ++j) {
+                Cell currentCell = cells[i][j];
+
+                switch (currentCell.c) {
+
+                    case 'a':
+                        cells[i][j].nthPiece = 0;
+                        cells[i][j].isNeighbouring = PLUS;
+                        cars[kk] = Car(kk, j, i, false, 1);
+                        cells[i][j].carID = kk;
+                        kk++;
+                        break;
+                    case 'b':
+                        cells[i][j].nthPiece = 1;
+                        if (cells[i][j+1].c == 'c'){
+                            cells[i][j].isNeighbouring = BOTH;
+                        }else {
+
+                            cells[i][j].isNeighbouring = MINUS;
+                            cells[i][j-1].carLength = 2;
+                            cells[i][j].carLength = 2;
+                        }
+                        cells[i][j].carID = cells[i][j-1].carID;
+                        cars[cells[i][j].carID].length = cells[i][j].carLength;
+                        break;
+                    case 'c':
+                        cells[i][j].nthPiece = 2;
+                        if (cells[i][j+1].c == 'd'){
+                            cells[i][j].isNeighbouring = BOTH;
+                        }else {
+                            cells[i][j].isNeighbouring = MINUS;
+                            cells[i][j-2].carLength = 3;
+                            cells[i][j-1].carLength = 3;
+                            cells[i][j].carLength = 3;
+                        }
+                        cells[i][j].carID = cells[i][j-2].carID;
+                        cells[i][j-1].carID = cells[i][j-2].carID;
+                        cars[cells[i][j].carID].length = cells[i][j].carLength;
+                        break;
+                    case 'd':
+                        cells[i][j].nthPiece = 3;
+                        cells[i][j].isNeighbouring = MINUS;
+                        cells[i][j-3].carLength = 4;
+                        cells[i][j-2].carLength = 4;
+                        cells[i][j-1].carLength = 4;
+                        cells[i][j].carLength = 4;
+                        cells[i][j].carID = cells[i][j-3].carID;
+                        cells[i][j-1].carID = cells[i][j-3].carID;
+                        cells[i][j-2].carID = cells[i][j-3].carID;
+                        cars[cells[i][j].carID].length = cells[i][j].carLength;
+                        break;
+                    case 'x':
+                        cells[i][j].nthPiece = 0;
+                        cells[i][j].isNeighbouring = PLUS;
+                        cars[kk] = Car(kk, j, i, true, 1);
+                        cells[i][j].carID = kk;
+                        kk++;
+                        break;
+                    case 'y':
+                        cells[i][j].nthPiece = 1;
+                        if (cells[i+1][j].c == 'z'){
+                            cells[i][j].isNeighbouring = BOTH;
+                        }else {
+                            cells[i][j].isNeighbouring = MINUS;
+                            cells[i-1][j].carLength = 2;
+                            cells[i][j].carLength = 2;
+                        }
+                        cells[i][j].carID = cells[i-1][j].carID;
+                        cars[cells[i][j].carID].length = cells[i][j].carLength;
+                        break;
+                    case 'z':
+                        cells[i][j].nthPiece = 2;
+                        if (cells[i+1][j].c == 'w'){
+                            cells[i][j].isNeighbouring = BOTH;
+                        }else {
+                            cells[i][j].isNeighbouring = MINUS;
+                            cells[i-2][j].carLength = 3;
+                            cells[i-1][j].carLength = 3;
+                            cells[i][j].carLength = 3;
+                        }
+                        cells[i][j].carID = cells[i-2][j].carID;
+                        cells[i-1][j].carID = cells[i-2][j].carID;
+                        cars[cells[i][j].carID].length = cells[i][j].carLength;
+                        break;
+                    case 'w':
+                        cells[i][j].nthPiece = 3;
+                        cells[i][j].isNeighbouring = MINUS;
+                        cells[i-3][j].carLength = 4;
+                        cells[i-2][j].carLength = 4;
+                        cells[i-1][j].carLength = 4;
+                        cells[i][j].carLength = 4;
+                        cells[i][j].carID = cells[i-3][j].carID;
+                        cells[i-1][j].carID = cells[i-3][j].carID;
+                        cells[i-2][j].carID = cells[i-3][j].carID;
+                        cars[cells[i][j].carID].length = cells[i][j].carLength;
+                        break;
+                    case 'o':
+
+                        if (cells[i+1][j].c == 'o' && cells[i-1][j].c == 'o' ||
+                            cells[i][j+1].c == 'o' && cells[i][j-1].c == 'o' ){
+                            cells[i][j].isNeighbouring = BOTH;
+                        }else if (cells[i+1][j].c == 'o' || cells[i][j+1].c == 'o'){
+                            cells[i][j].isNeighbouring = PLUS;
+                        } else{
+                            cells[i][j].isNeighbouring = MINUS;
+                        }
+
+                        if (cells[i-1][j].c != 'o' && cells[i+1][j].c != 'o' && cells[i][j-1].c != 'o'){
+                            if (!deansCarInitialized){
+                                cars[kk] = Car(kk, j, i, false, 1);
+                                cars[kk].type = DEANSCAR;
+                                cells[i][j].carID = kk;
+                                kk++;
+                                deansCarInitialized = true;
+                            }
+                            cells[i][j].isVertical = false;
+                            int k = 0;
+                            while (cells[i][j + k].c == 'o'){
+                                cells[i][j + k].nthPiece = k;
+                                cells[i][j + k].isVertical = false;
+                                k++;
+                            }
+                            int length = k;
+                            cars[kk-1].length = length;
+                            k--;
+                            while (cells[i][j+k].c == 'o'){
+                                cells[i][j+k].carLength = length;
+                                cells[i][j+k].carID = cells[i][j].carID;
+                                k--;
+                            }
+
+                        } else if (cells[i-1][j].c != 'o' && cells[i][j+1].c != 'o' && cells[i][j-1].c != 'o'){
+                            if (!deansCarInitialized){
+                                cars[kk] = Car(kk, j, i, true, 1);
+                                cars[kk].type = DEANSCAR;
+                                cells[i][j].carID = kk;
+                                kk++;
+                                deansCarInitialized = true;
+                            }
+                            cells[i][j].isVertical = true;
+                            int k = 0;
+                            while (cells[i+k][j].c == 'o'){
+                                cells[i+k][j].nthPiece = k;
+                                cells[i+k][j].isVertical = true;
+                                k++;
+                            }
+                            int length = k;
+                            cars[kk-1].length = length;
+                            k--;
+                            while (cells[i+k][j].c == 'o'){
+                                cells[i+k][j].carLength = length;
+                                cells[i+k][j].carID = cells[i][j].carID;
+                                k--;
+                            }
+
+                        }
+
+                        break;
+
+                }
+            }
+
+        }
+        splitCars();
+        updateMoves();
     }
 
 };

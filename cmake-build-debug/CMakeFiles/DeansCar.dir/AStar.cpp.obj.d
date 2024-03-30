@@ -188,4 +188,6 @@ CMakeFiles/DeansCar.dir/AStar.cpp.obj: \
  C:/msys64/mingw64/include/c++/13.1.0/array \
  C:/msys64/mingw64/include/c++/13.1.0/compare \
  C:\Users\Szymon\Desktop\Programming_Playground\Projects_For_Uni\DeansCar\CellType.h \
- C:\Users\Szymon\Desktop\Programming_Playground\Projects_For_Uni\DeansCar\Car.h
+ C:\Users\Szymon\Desktop\Programming_Playground\Projects_For_Uni\DeansCar\Car.h \
+ C:/msys64/mingw64/include/c++/13.1.0/sstream \
+ C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc

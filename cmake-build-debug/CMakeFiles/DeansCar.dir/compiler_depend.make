@@ -196,7 +196,9 @@ CMakeFiles/DeansCar.dir/AStar.cpp.obj: C:/Users/Szymon/Desktop/Programming_Playg
   C:/msys64/mingw64/include/c++/13.1.0/array \
   C:/msys64/mingw64/include/c++/13.1.0/compare \
   C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/CellType.h \
-  C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Car.h
+  C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Car.h \
+  C:/msys64/mingw64/include/c++/13.1.0/sstream \
+  C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc
 
 CMakeFiles/DeansCar.dir/Car.cpp.obj: C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Car.cpp \
   C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Car.h \
@@ -572,7 +574,9 @@ CMakeFiles/DeansCar.dir/Grid.cpp.obj: C:/Users/Szymon/Desktop/Programming_Playgr
   C:/msys64/mingw64/include/c++/13.1.0/bits/uniform_int_dist.h \
   C:/msys64/mingw64/include/c++/13.1.0/bits/stl_tempbuf.h \
   C:/msys64/mingw64/include/c++/13.1.0/pstl/glue_algorithm_defs.h \
-  C:/msys64/mingw64/include/c++/13.1.0/pstl/execution_defs.h
+  C:/msys64/mingw64/include/c++/13.1.0/pstl/execution_defs.h \
+  C:/msys64/mingw64/include/c++/13.1.0/sstream \
+  C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc
 
 CMakeFiles/DeansCar.dir/Move.cpp.obj: C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Move.cpp \
   C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Move.h \
@@ -743,6 +747,8 @@ CMakeFiles/DeansCar.dir/Solver.cpp.obj: C:/Users/Szymon/Desktop/Programming_Play
   C:/msys64/mingw64/include/c++/13.1.0/bits/stl_tempbuf.h \
   C:/msys64/mingw64/include/c++/13.1.0/pstl/glue_algorithm_defs.h \
   C:/msys64/mingw64/include/c++/13.1.0/pstl/execution_defs.h \
+  C:/msys64/mingw64/include/c++/13.1.0/sstream \
+  C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc \
   C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/AStar.h \
   C:/msys64/mingw64/include/c++/13.1.0/queue \
   C:/msys64/mingw64/include/c++/13.1.0/deque \
@@ -1291,7 +1297,12 @@ CMakeFiles/DeansCar.dir/main.cpp.obj: C:/Users/Szymon/Desktop/Programming_Playgr
   C:/msys64/mingw64/include/glm/ext/vector_int2.hpp \
   C:/msys64/mingw64/include/glm/ext/vector_int2_sized.hpp \
   C:/msys64/mingw64/include/glm/ext/vector_uint2.hpp \
-  C:/msys64/mingw64/include/glm/ext/vector_uint2_sized.hpp
+  C:/msys64/mingw64/include/glm/ext/vector_uint2_sized.hpp \
+  C:/msys64/mingw64/include/c++/13.1.0/chrono \
+  C:/msys64/mingw64/include/c++/13.1.0/bits/chrono.h \
+  C:/msys64/mingw64/include/c++/13.1.0/ratio \
+  C:/msys64/mingw64/include/c++/13.1.0/ctime \
+  C:/msys64/mingw64/include/c++/13.1.0/bits/parse_numbers.h
 
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/shaintrin.h:
@@ -1528,6 +1539,8 @@ C:/msys64/mingw64/include/bemapiset.h:
 
 C:/msys64/mingw64/include/pthread_time.h:
 
+C:/msys64/mingw64/include/c++/13.1.0/ctime:
+
 C:/msys64/mingw64/include/pthread_unistd.h:
 
 C:/msys64/mingw64/include/c++/13.1.0/bits/functexcept.h:
@@ -1760,6 +1773,8 @@ C:/msys64/mingw64/include/c++/13.1.0/bits/locale_facets.tcc:
 
 C:/msys64/mingw64/include/c++/13.1.0/bits/ostream.tcc:
 
+C:/msys64/mingw64/include/c++/13.1.0/bits/parse_numbers.h:
+
 C:/msys64/mingw64/include/glm/ext/vector_uint2.hpp:
 
 C:/msys64/mingw64/include/c++/13.1.0/istream:
@@ -1869,6 +1884,14 @@ C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/CellTyp
 C:/msys64/mingw64/include/glm/ext/vector_uint3.hpp:
 
 C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/Car.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/rdseedintrin.h:
+
+C:/msys64/mingw64/include/c++/13.1.0/sstream:
+
+C:/msys64/mingw64/include/propidl.h:
+
+C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc:
 
 C:/msys64/mingw64/include/winbase.h:
 
@@ -1986,10 +2009,6 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/pconfigintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/pkuintrin.h:
 
-C:/msys64/mingw64/include/c++/13.1.0/sstream:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/rdseedintrin.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/rtmintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/sgxintrin.h:
@@ -2049,6 +2068,8 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/avx512cdintrin.h:
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/avx512vlintrin.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/avx512vlbwintrin.h:
+
+C:/msys64/mingw64/include/c++/13.1.0/bits/chrono.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/avx5124fmapsintrin.h:
 
@@ -2232,10 +2253,6 @@ C:/msys64/mingw64/include/oleidl.h:
 
 C:/msys64/mingw64/include/servprov.h:
 
-C:/msys64/mingw64/include/c++/13.1.0/bits/sstream.tcc:
-
-C:/msys64/mingw64/include/propidl.h:
-
 C:/msys64/mingw64/include/winioctl.h:
 
 C:/msys64/mingw64/include/winsvc.h:
@@ -2267,3 +2284,7 @@ C:/msys64/mingw64/include/glm/ext/vector_float2_precision.hpp:
 C:/msys64/mingw64/include/glm/ext/vector_double2_precision.hpp:
 
 C:/msys64/mingw64/include/glm/ext/vector_int2.hpp:
+
+C:/msys64/mingw64/include/c++/13.1.0/chrono:
+
+C:/msys64/mingw64/include/c++/13.1.0/ratio:

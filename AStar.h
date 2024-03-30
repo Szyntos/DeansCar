@@ -22,23 +22,31 @@ struct Node {
     float hCost = 0;
     float fCost = 0;
     Node* parent = nullptr;
-    std::vector<Node*> neighbours = {};
     Grid* originalGrid = nullptr;
-    std::vector<Move> movesDone;
-    Move prevMove;
+    Move prevMove = {};
 
     std::vector<unsigned int> hash;
 
     Node()= default;
 
-    Node(Grid* oGrid, std::vector<Move> moves, Move move){
+    Node(Grid* oGrid, Move move){
         originalGrid = oGrid;
-        movesDone = moves;
         prevMove = move;
+        hash = originalGrid->toIntegersBaseFour();
+
     };
 
-    std::vector<Node*>& getNeighbours() {
-        return neighbours;
+    bool operator==(const Node& other) const {
+        return hash == other.hash;
+    }
+
+    void recomputeGrid(){
+        originalGrid->parseInputToGrid(originalGrid->getGridFromHashBaseFour(hash));
+    }
+
+    std::vector<Move> getNeighbours() {
+        std::vector<Move> moves = originalGrid->getPossibleMoves();
+        return moves;
     }// Parent node in the path
     // Calculate the F cost of a node
     void calculateFCost() {
@@ -46,9 +54,25 @@ struct Node {
     }
 
     bool isWon(){
-        return false;
+        return originalGrid->isWon();
     }
 };
+
+struct NodeHasher {
+    std::size_t operator()(const Node* node) const {
+        std::size_t seed = 0;
+        for (unsigned int i : node->hash) {
+            seed ^= std::hash<unsigned int>{}(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};
+struct NodeEqual {
+    bool operator()(const Node* lhs, const Node* rhs) const {
+        return lhs->hash == rhs->hash;
+    }
+};
+
 
 class AStar {
 public:
@@ -82,15 +106,15 @@ public:
             }
         }
 
-        return std::vector<Node*>(); // Return empty path if no path is found
+        return {}; // Return empty path if no path is found
     }
-    bool dfs(Node* node, std::vector<Move>& path, std::unordered_set<Node*>& visited, int maxPathLength) {
-        // Check if the node is already visited to avoid cycles
+    bool dfs(Node* node, std::vector<Move>& path, std::unordered_set<Node*, NodeHasher, NodeEqual>& visited, int maxPathLength) {
         if (visited.find(node) != visited.end()) return false;
-        if (visited.size() > maxPathLength){
+
+        if (path.size() > maxPathLength){
             return false;
         }
-
+//        std::cout << node->originalGrid->getGridFromHashBaseFour(node->hash) << "aa\n\n";
 
         // Mark this node as visited
         visited.insert(node);
@@ -99,14 +123,28 @@ public:
 
         // Check if the current node is the target node
         if (node->isWon()) {
+            std::cout << "AAAAAAAAAAAAAAAAAAAAA\n";
             return true; // Return true to stop the search
         }
-
+        int neighbourCount = 0;
+        Node neighbourNode;
         // Recursively search in unvisited neighbours
-        for (Node* neighbour : node->getNeighbours()) {
-            if (dfs(neighbour, path, visited, maxPathLength)) {
+        for (Move neighbour : node->getNeighbours()) {
+
+            if (neighbourCount == 0){
+                neighbourCount++;
+                node->originalGrid->moveCar(neighbour.x, neighbour.y, neighbour.n, neighbour.dir);
+                neighbourNode = Node(node->originalGrid, neighbour);
+            }
+            else {
+                node->recomputeGrid();
+                node->originalGrid->moveCar(neighbour.x, neighbour.y, neighbour.n, neighbour.dir);
+                neighbourNode = Node(node->originalGrid, neighbour);
+            }
+            if (dfs(&neighbourNode, path, visited, maxPathLength)) {
                 return true; // If target is found in a subtree, return true to propagate the success back up
             }
+
         }
 
         // Backtrack: If not found in this path, remove the current node from the path before returning
