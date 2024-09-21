@@ -14,10 +14,7 @@
 #include "Grid.h"
 
 struct Node {
-    int x = 0;
-    int y = 0;
     // Node position
-    int value = 0;
     float gCost = 0;
     float hCost = 0;
     float fCost = 0;
@@ -47,7 +44,20 @@ struct Node {
     std::vector<Move> getNeighbours() {
         std::vector<Move> moves = originalGrid->getPossibleMoves();
         return moves;
-    }// Parent node in the path
+    }
+
+    std::vector<Node*> getNeighboursAsNodes() {
+        std::vector<Move> moves = originalGrid->getPossibleMoves();
+        std::vector<Node*> neighbours;
+        for (Move move: moves) {
+            Node node = Node();
+            originalGrid->moveCar(move.x, move.y, move.n, move.dir);
+            node.hash = originalGrid->toIntegersBaseFour();
+            neighbours.push_back(&node);
+        }
+        return neighbours;
+    }
+    // Parent node in the path
     // Calculate the F cost of a node
     void calculateFCost() {
         fCost = gCost + hCost;
@@ -58,25 +68,30 @@ struct Node {
     }
 };
 
-struct NodeHasher {
-    std::size_t operator()(const Node* node) const {
-        std::size_t seed = 0;
-        for (unsigned int i : node->hash) {
-            seed ^= std::hash<unsigned int>{}(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+struct VectorHash {
+    size_t operator()(const std::vector<unsigned int>& v) const {
+        std::hash<unsigned int> hasher;
+        size_t seed = 0;
+        for (unsigned int i : v) {
+            // Combine the hash of the current element with the running hash
+            seed ^= hasher(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;
     }
 };
-struct NodeEqual {
-    bool operator()(const Node* lhs, const Node* rhs) const {
-        return lhs->hash == rhs->hash;
+
+// Define a custom equality comparison for vectors of unsigned int
+struct VectorEqual {
+    bool operator()(const std::vector<unsigned int>& a, const std::vector<unsigned int>& b) const {
+        return a == b;
     }
 };
 
+using VisitedSet = std::unordered_set<std::vector<unsigned int>, VectorHash, VectorEqual>;
 
 class AStar {
 public:
-    std::vector<Node*> findPath(Node* startNode, Node* goalNode) {
+    std::vector<Move> findPath(Node* startNode, Node* goalNode) {
         openList.push_back(startNode);
 
         while (!openList.empty()) {
@@ -108,8 +123,8 @@ public:
 
         return {}; // Return empty path if no path is found
     }
-    bool dfs(Node* node, std::vector<Move>& path, std::unordered_set<Node*, NodeHasher, NodeEqual>& visited) {
-        if (visited.find(node) != visited.end()) return false;
+    bool dfs(Node* node, std::vector<Move>& path, VisitedSet visited) {
+        if (visited.find(node->hash) != visited.end())  return false;
 
         if (path.size() > node->originalGrid->movesLimit){
             return false;
@@ -117,13 +132,12 @@ public:
 //        std::cout << node->originalGrid->getGridFromHashBaseFour(node->hash) << "aa\n\n";
 
         // Mark this node as visited
-        visited.insert(node);
+        visited.insert(node->hash);
         // Add the current node to the path
         path.push_back(node->prevMove);
 
         // Check if the current node is the target node
         if (node->isWon()) {
-            std::cout << "AAAAAAAAAAAAAAAAAAAAA\n";
             return true; // Return true to stop the search
         }
         int neighbourCount = 0;
@@ -156,7 +170,26 @@ public:
         return false;
     }
 
-    void movesListToOutput(std::vector<Move>& moves, Grid& grid){
+    static bool isVisited(const std::vector<unsigned int>& hash, const std::vector<std::vector<unsigned int>>& visited) {
+        for (const auto& i : visited) {
+            if (hash.size() != i.size()) {
+                continue; // Skip to the next iteration if sizes don't match
+            }
+            bool allElementsMatch = true; // Assume all elements match initially
+            for (size_t j = 0; j < i.size(); ++j) {
+                if (hash[j] != i[j]) {
+                    allElementsMatch = false; // Found a mismatch
+                    break; // No need to check further elements
+                }
+            }
+            if (allElementsMatch) {
+                return true; // Found a matching vector
+            }
+        }
+        return false; // No match found
+    }
+
+    void movesListToOutput(std::vector<Move>& moves){
         std::cout << moves.size()-1 << "\n";
         int i = 0;
         for (Move move: moves) {
@@ -190,12 +223,12 @@ private:
     }
 
     // Function to retrace the path from the goal node back to the start node
-    std::vector<Node*> retracePath(Node* startNode, Node* endNode) {
-        std::vector<Node*> path;
+    std::vector<Move> retracePath(Node* startNode, Node* endNode) {
+        std::vector<Move> path;
         Node* currentNode = endNode;
 
         while (currentNode != startNode) {
-            path.push_back(currentNode);
+            path.push_back(currentNode->prevMove);
             currentNode = currentNode->parent;
         }
         std::reverse(path.begin(), path.end());
@@ -203,18 +236,13 @@ private:
     }
 
     // Placeholder for a function to get a node's neighbors
-    std::vector<Node*> getNeighbors(Node* node) {
-        // Implement according to your grid/environment
-        std::vector<Node*> neighbors;
-        // Add neighbors to the list
-        return neighbors;
+    std::vector<Node *> getNeighbors(Node* node) {
+        return node->getNeighboursAsNodes();
     }
 
     // Function to calculate the distance between two nodes
     float getDistance(Node* nodeA, Node* nodeB) {
-        int dx = std::abs(nodeA->x - nodeB->x);
-        int dy = std::abs(nodeA->y - nodeB->y);
-        return std::sqrt(dx * dx + dy * dy);
+
     }
 };
 

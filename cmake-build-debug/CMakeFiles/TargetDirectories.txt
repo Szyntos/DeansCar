@@ -1,3 +1,0 @@
-C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/cmake-build-debug/CMakeFiles/DeansCar.dir
-C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Szymon/Desktop/Programming_Playground/Projects_For_Uni/DeansCar/cmake-build-debug/CMakeFiles/rebuild_cache.dir

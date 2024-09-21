@@ -10,7 +10,6 @@
 #include <glm/vec2.hpp>
 #include <chrono>
 
-
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -34,16 +33,16 @@ Grid grid;
 //                    "#aby..y#\n"
 //                    "#ababcz#\n"
 //                    "########";
-
-std::string input = "8 8 60\n"
-                    "########\n"
-                    "#xab#..#\n"
-                    "#y..xab#\n"
-                    "#xooy...\n"
-                    "#y.xabx#\n"
-                    "#aby..y#\n"
-                    "#ababcz#\n"
-                    "########";
+//
+//std::string input = "8 8 60\n"
+//                    "########\n"
+//                    "#xab#..#\n"
+//                    "#y..xab#\n"
+//                    "#xooy...\n"
+//                    "#y.xabx#\n"
+//                    "#aby..y#\n"
+//                    "#ababcz#\n"
+//                    "########";
 
 //std::string input = "8 8 60\n"
 //                    "########\n"
@@ -73,11 +72,31 @@ std::string input = "8 8 60\n"
 //                    "#abxy.z......#\n"
 //                    "#abyabc......#\n"
 //                    "##############";
-//std::string input = "8 8 2\n"
+//std::string input = "5 19 100\n"
+//                    "###.#\n"
+//                    "#...#\n"
+//                    "#...#\n"
+//                    "#...#\n"
+//                    "#...#\n"
+//                    "#...#\n"
+//                    "#...#\n"
+//                    "#xab#\n"
+//                    "#y..#\n"
+//                    "#zab#\n"
+//                    "#...#\n"
+//                    "#xab#\n"
+//                    "#y.o#\n"
+//                    "#xxo#\n"
+//                    "#yyo#\n"
+//                    "#xz.#\n"
+//                    "#yux#\n"
+//                    "#aby#\n"
+//                    "#####";
+//std::string input = "8 8 42\n"
 //                    "########\n"
 //                    "##abxxx#\n"
-//                    "#...yyy#\n"
-//                    "#oo..x..\n"
+//                    "#..xyyy#\n"
+//                    "#ooy.x..\n"
 //                    "#xxaby.#\n"
 //                    "#yy.xz.#\n"
 //                    "#ab.y..#\n"
@@ -103,6 +122,22 @@ const char* fragmentShaderSource = "#version 330 core\n"
                                    "}\n\0";
 
 int main() {
+//    std::string line;
+//    std::stringstream input;
+//
+//    // Reading the first line which contains dimensions or other info.
+//    std::getline(std::cin, line);
+//    input << line << "\n";
+//
+//    // Parse the first line to know how many more lines to read for the grid.
+//    int rows, cols, extraInfo;
+//    std::istringstream(line) >> cols >> rows >> extraInfo; // Adjust according to your input format.
+//
+//    // Reading the grid lines based on the number of rows.
+//    for(int i = 0; i < rows; ++i) {
+//        std::getline(std::cin, line);
+//        input << line << "\n";
+//    }
 
 
     srand((unsigned) time(NULL));
@@ -116,7 +151,8 @@ int main() {
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "Execution time: " << elapsed.count() << " s\n";
     grid.parseInputToGrid(input);
-    solver.aStar.movesListToOutput(moves, grid);
+    solver.aStar.movesListToOutput(moves);
+//    return 0;
     // GLFW: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -542,222 +578,3 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-
-// Helper function to convert a character to a CellType
-CellType charToCellType(char c) {
-    switch (c) {
-        case '.':
-            return EMPTY;
-        case '#':
-            return BARRIER;
-        case 'a':
-        case 'b':
-        case 'c':
-        case 'd':
-        case 'x':
-        case 'y':
-        case 'z':
-        case 'w':
-            return CAR;
-        case 'o':
-            return DEANSCAR;
-        default:
-            return EMPTY; // Default case to handle unexpected characters
-    }
-}
-
-// Main function to parse input and fill the Grid
-Grid parseInputToGrid(const std::string& input) {
-    std::istringstream iss(input);
-    int W, H, N;
-    iss >> W >> H >> N;
-
-    Grid grid(W, H, N);
-
-    std::string line;
-    std::getline(iss, line);
-
-    for (int i = 0; i < H; ++i) {
-        std::getline(iss, line);
-        for (int j = 0; j < W; ++j) {
-            char c = line[j];
-            grid.cells[i][j].cellType = charToCellType(c);
-            if (c == 'x' || c == 'y' || c == 'z' || c == 'w') {
-                grid.cells[i][j].isVertical = true;
-            }
-            grid.cells[i][j].c = c;
-            if (c == '.' && (i == 0 || i == H - 1 || j == 0 || j == W - 1)){
-                grid.cells[i][j].cellType = EXIT;
-            }
-        }
-    }
-    int kk = 0;
-    bool deansCarInitialized = false;
-    for (int i = 0; i < H; ++i) {
-        for (int j = 0; j < W; ++j) {
-            Cell currentCell = grid.cells[i][j];
-
-            switch (currentCell.c) {
-
-                case 'a':
-                    grid.cells[i][j].nthPiece = 0;
-                    grid.cells[i][j].isNeighbouring = PLUS;
-                    grid.cars[kk] = Car(kk, j, i, false, 1);
-                    grid.cells[i][j].carID = kk;
-                    kk++;
-                    break;
-                case 'b':
-                    grid.cells[i][j].nthPiece = 1;
-                    if (grid.cells[i][j+1].c == 'c'){
-                        grid.cells[i][j].isNeighbouring = BOTH;
-                    }else {
-
-                        grid.cells[i][j].isNeighbouring = MINUS;
-                        grid.cells[i][j-1].carLength = 2;
-                        grid.cells[i][j].carLength = 2;
-                    }
-                    grid.cells[i][j].carID = grid.cells[i][j-1].carID;
-                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
-                    break;
-                case 'c':
-                    grid.cells[i][j].nthPiece = 2;
-                    if (grid.cells[i][j+1].c == 'd'){
-                        grid.cells[i][j].isNeighbouring = BOTH;
-                    }else {
-                        grid.cells[i][j].isNeighbouring = MINUS;
-                        grid.cells[i][j-2].carLength = 3;
-                        grid.cells[i][j-1].carLength = 3;
-                        grid.cells[i][j].carLength = 3;
-                    }
-                    grid.cells[i][j].carID = grid.cells[i][j-2].carID;
-                    grid.cells[i][j-1].carID = grid.cells[i][j-2].carID;
-                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
-                    break;
-                case 'd':
-                    grid.cells[i][j].nthPiece = 3;
-                    grid.cells[i][j].isNeighbouring = MINUS;
-                    grid.cells[i][j-3].carLength = 4;
-                    grid.cells[i][j-2].carLength = 4;
-                    grid.cells[i][j-1].carLength = 4;
-                    grid.cells[i][j].carLength = 4;
-                    grid.cells[i][j].carID = grid.cells[i][j-3].carID;
-                    grid.cells[i][j-1].carID = grid.cells[i][j-3].carID;
-                    grid.cells[i][j-2].carID = grid.cells[i][j-3].carID;
-                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
-                    break;
-                case 'x':
-                    grid.cells[i][j].nthPiece = 0;
-                    grid.cells[i][j].isNeighbouring = PLUS;
-                    grid.cars[kk] = Car(kk, j, i, true, 1);
-                    grid.cells[i][j].carID = kk;
-                    kk++;
-                    break;
-                case 'y':
-                    grid.cells[i][j].nthPiece = 1;
-                    if (grid.cells[i+1][j].c == 'z'){
-                        grid.cells[i][j].isNeighbouring = BOTH;
-                    }else {
-                        grid.cells[i][j].isNeighbouring = MINUS;
-                        grid.cells[i-1][j].carLength = 2;
-                        grid.cells[i][j].carLength = 2;
-                    }
-                    grid.cells[i][j].carID = grid.cells[i-1][j].carID;
-                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
-                    break;
-                case 'z':
-                    grid.cells[i][j].nthPiece = 2;
-                    if (grid.cells[i+1][j].c == 'w'){
-                        grid.cells[i][j].isNeighbouring = BOTH;
-                    }else {
-                        grid.cells[i][j].isNeighbouring = MINUS;
-                        grid.cells[i-2][j].carLength = 3;
-                        grid.cells[i-1][j].carLength = 3;
-                        grid.cells[i][j].carLength = 3;
-                    }
-                    grid.cells[i][j].carID = grid.cells[i-2][j].carID;
-                    grid.cells[i-1][j].carID = grid.cells[i-2][j].carID;
-                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
-                    break;
-                case 'w':
-                    grid.cells[i][j].nthPiece = 3;
-                    grid.cells[i][j].isNeighbouring = MINUS;
-                    grid.cells[i-3][j].carLength = 4;
-                    grid.cells[i-2][j].carLength = 4;
-                    grid.cells[i-1][j].carLength = 4;
-                    grid.cells[i][j].carLength = 4;
-                    grid.cells[i][j].carID = grid.cells[i-3][j].carID;
-                    grid.cells[i-1][j].carID = grid.cells[i-3][j].carID;
-                    grid.cells[i-2][j].carID = grid.cells[i-3][j].carID;
-                    grid.cars[grid.cells[i][j].carID].length = grid.cells[i][j].carLength;
-                    break;
-                case 'o':
-
-                    if (grid.cells[i+1][j].c == 'o' && grid.cells[i-1][j].c == 'o' ||
-                            grid.cells[i][j+1].c == 'o' && grid.cells[i][j-1].c == 'o' ){
-                        grid.cells[i][j].isNeighbouring = BOTH;
-                    }else if (grid.cells[i+1][j].c == 'o' || grid.cells[i][j+1].c == 'o'){
-                        grid.cells[i][j].isNeighbouring = PLUS;
-                    } else{
-                        grid.cells[i][j].isNeighbouring = MINUS;
-                    }
-
-                    if (grid.cells[i-1][j].c != 'o' && grid.cells[i+1][j].c != 'o' && grid.cells[i][j-1].c != 'o'){
-                        if (!deansCarInitialized){
-                            grid.cars[kk] = Car(kk, j, i, false, 1);
-                            grid.cars[kk].type = DEANSCAR;
-                            grid.cells[i][j].carID = kk;
-                            kk++;
-                            deansCarInitialized = true;
-                        }
-                        grid.cells[i][j].isVertical = false;
-                        int k = 0;
-                        while (grid.cells[i][j + k].c == 'o'){
-                            grid.cells[i][j + k].nthPiece = k;
-                            grid.cells[i][j + k].isVertical = false;
-                            k++;
-                        }
-                        int length = k;
-                        grid.cars[kk-1].length = length;
-                        k--;
-                        while (grid.cells[i][j+k].c == 'o'){
-                            grid.cells[i][j+k].carLength = length;
-                            grid.cells[i][j+k].carID = grid.cells[i][j].carID;
-                            k--;
-                        }
-
-                    } else if (grid.cells[i-1][j].c != 'o' && grid.cells[i][j+1].c != 'o' && grid.cells[i][j-1].c != 'o'){
-                        if (!deansCarInitialized){
-                            grid.cars[kk] = Car(kk, j, i, true, 1);
-                            grid.cars[kk].type = DEANSCAR;
-                            grid.cells[i][j].carID = kk;
-                            kk++;
-                            deansCarInitialized = true;
-                        }
-                        grid.cells[i][j].isVertical = true;
-                        int k = 0;
-                        while (grid.cells[i+k][j].c == 'o'){
-                            grid.cells[i+k][j].nthPiece = k;
-                            grid.cells[i+k][j].isVertical = true;
-                            k++;
-                        }
-                        int length = k;
-                        grid.cars[kk-1].length = length;
-                        k--;
-                        while (grid.cells[i+k][j].c == 'o'){
-                            grid.cells[i+k][j].carLength = length;
-                            grid.cells[i+k][j].carID = grid.cells[i][j].carID;
-                            k--;
-                        }
-
-                    }
-
-                    break;
-
-            }
-        }
-
-    }
-    grid.splitCars();
-    grid.updateMoves();
-    return grid;
-}

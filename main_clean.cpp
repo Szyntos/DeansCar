@@ -1,19 +1,120 @@
-//
-// Created by szynt on 21.03.2024.
-//
-
-#ifndef DEANSCAR_GRID_H
-#define DEANSCAR_GRID_H
-
-
-#include "Cell.h"
-#include "Car.h"
-#include <vector>
 #include <iostream>
+#include <sstream>
+#include <array>
+#include <string>
+#include <vector>
 #include <cstdlib>
 #include <algorithm>
-#include <sstream>
+#include <queue>
+#include <unordered_map>
+#include <cmath>
+#include <unordered_set>
 
+
+enum Direction {
+    PLUS = 1,
+    MINUS = 2,
+    BOTH = 3,
+    ZERO = 4
+};
+
+enum CellType {
+    CAR = 1,
+    DEANSCAR = 2,
+    EMPTY = 3,
+    BARRIER = 4,
+    EXIT = 5
+};
+
+class Cell {
+public:
+    CellType cellType;
+    bool isVertical;
+    Direction isNeighbouring;
+    std::array<int, 4> northEastSouthWest = {};
+    int x;
+    int y;
+    char c = '.';
+    int nthPiece = 0;
+    int carLength = 0;
+    int carID = -1;
+
+    Cell() : cellType(EMPTY), isVertical(false), isNeighbouring(ZERO),
+             northEastSouthWest({0, 0, 0, 0}), x(0), y(0) {
+    }
+    // Constructor definition
+    Cell(int xCoord, int yCoord)
+            : cellType(EMPTY), isVertical(false), isNeighbouring(ZERO),
+              northEastSouthWest({0, 0, 0, 0}), x(xCoord), y(yCoord) {
+    }
+};
+
+
+
+class Car {
+public:
+    int ID;
+    std::array<int, 4> northEastSouthWest = {};
+    int x;
+    int y;
+    bool isVertical;
+    int length;
+    CellType type = CAR;
+    Car(){
+        ID = 0;
+        x = 0;
+        y = 0;
+        isVertical = false;
+        length = 0;
+    }
+    explicit Car(int id, int xPos, int yPos, bool vert, int len): ID(id), x(xPos), y(yPos), isVertical(vert), length(len){
+
+    }
+
+    bool canMove(){
+        for (int i = 0; i < 4; ++i) {
+            if (northEastSouthWest[i] > 0){
+                return true;
+            }
+        }
+        return false;
+    }
+    void move(Direction dir, int n){
+        switch (dir) {
+            case PLUS:
+                if (isVertical){
+                    y += n;
+                }else{
+                    x += n;
+                }
+                break;
+            case MINUS:
+                if (isVertical){
+                    y -= n;
+                }else{
+                    x -= n;
+                }
+                break;
+            default:
+                break;
+        }
+
+    }
+
+};
+
+
+
+
+class Move {
+public:
+    int x;
+    int y;
+    int n;
+    Direction dir;
+    int carID;
+    char letter;
+};
 
 
 class Grid {
@@ -27,27 +128,12 @@ public:
     std::vector<Car> horizontalCars;
     int exitX = 0;
     int exitY = 0;
-    int initialDeansCarX = 0;
-    int initialDeansCarY = 0;
     int movesLimit = 0;
-
-
-    bool win = false;
 
     Grid(){
         width = 0;
         height = 0;
         carCount = 0;
-    }
-
-    Grid(int w, int h, int carCount) : width(w), height(h), cells(height, std::vector<Cell>(width)),
-                                    carCount(carCount), cars(carCount) {
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                cells[i][j] = Cell(j, i);
-            }
-        }
-
     }
 
     void splitCars(){
@@ -87,7 +173,6 @@ public:
     }
 
     void partialUpdateMoves(int x, int y, bool isVertical, Direction dir, bool canBounce){
-//        std::cout << "update" <<  std::endl;
         if (x < 0 || x >= width || y < 0 || y >= height){
             return;
         }
@@ -140,7 +225,7 @@ public:
             return;
         }
         if (isVertical){
-            if (i + 1 < cells.size() && ((cells[i+1][j].isVertical && (cells[i+1][j].cellType == CAR || cells[i+1][j].cellType == DEANSCAR)) || cells[i+1][j].cellType == EMPTY || cells[i+1][j].cellType == EXIT)){
+            if (i + 1 <= cells.size() && ((cells[i+1][j].isVertical && (cells[i+1][j].cellType == CAR || cells[i+1][j].cellType == DEANSCAR)) || cells[i+1][j].cellType == EMPTY || cells[i+1][j].cellType == EXIT)){
                 cells[i+1][j].northEastSouthWest[0] = 1 + cells[i][j].northEastSouthWest[0];
                 if (cells[i+1][j].carID != -1){
                     updateCarNESW(cells[i+1][j].carID);
@@ -162,7 +247,7 @@ public:
 //                    cars[cells[i][j-1].carID].northEastSouthWest[1] = 1 + cells[i][j].northEastSouthWest[1];
                 }
             }
-            if (j + 1  < cells[0].size() && ((!cells[i][j+1].isVertical && (cells[i][j+1].cellType == CAR || cells[i][j+1].cellType == DEANSCAR)) || cells[i][j+1].cellType == EMPTY || cells[i][j+1].cellType == EXIT)){
+            if (j + 1  <= cells[0].size() && ((!cells[i][j+1].isVertical && (cells[i][j+1].cellType == CAR || cells[i][j+1].cellType == DEANSCAR)) || cells[i][j+1].cellType == EMPTY || cells[i][j+1].cellType == EXIT)){
                 cells[i][j+1].northEastSouthWest[3] = 1 + cells[i][j].northEastSouthWest[3];
                 if (cells[i][j+1].carID != -1){
                     updateCarNESW(cells[i][j+1].carID);
@@ -234,9 +319,6 @@ public:
                     cars[cells[y][x].carID].move(dir, n);
                     y -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
-                        if (cells[y - offset + n][x].cellType == EXIT){
-                            win = true;
-                        }
                         cells[y - offset + n][x].cellType = cells[y - offset][x].cellType;
                         cells[y - offset + n][x].isVertical = cells[y - offset][x].isVertical;
                         cells[y - offset + n][x].isNeighbouring = cells[y - offset][x].isNeighbouring;
@@ -266,9 +348,6 @@ public:
                     cars[cells[y][x].carID].move(dir, n);
                     y += cells[y][x].carLength - (cells[y][x].nthPiece)-cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
-                        if (cells[y + offset - n][x].cellType == EXIT){
-                            win = true;
-                        }
                         cells[y + offset - n][x].cellType = cells[y + offset][x].cellType;
                         cells[y + offset - n][x].isVertical = cells[y + offset][x].isVertical;
                         cells[y + offset - n][x].isNeighbouring = cells[y + offset][x].isNeighbouring;
@@ -304,9 +383,6 @@ public:
                     cars[cells[y][x].carID].move(dir, n);
                     x -= cells[y][x].carLength - (cells[y][x].nthPiece + 1);
                     for (int offset = 0; offset < originalCarLength; ++offset) {
-                        if (cells[y][x - offset + n].cellType == EXIT){
-                            win = true;
-                        }
                         cells[y][x - offset + n].cellType = cells[y][x - offset].cellType;
                         cells[y][x - offset + n].isVertical = cells[y][x - offset].isVertical;
                         cells[y][x - offset + n].isNeighbouring = cells[y][x - offset].isNeighbouring;
@@ -336,9 +412,6 @@ public:
                     cars[cells[y][x].carID].move(dir, n);
                     x += cells[y][x].carLength - (cells[y][x].nthPiece) - cells[y][x].carLength;
                     for (int offset = 0; offset < originalCarLength; ++offset) {
-                        if (cells[y][x + offset - n].cellType == EXIT){
-                            win = true;
-                        }
                         cells[y][x + offset - n].cellType = cells[y][x + offset].cellType;
                         cells[y][x + offset - n].isVertical = cells[y][x + offset].isVertical;
                         cells[y][x + offset - n].isNeighbouring = cells[y][x + offset].isNeighbouring;
@@ -405,71 +478,8 @@ public:
     }
 
 
-    [[nodiscard]] std::vector<unsigned int> toIntegers() const {
-        std::vector<unsigned int> result;
-        const int bitsInInt = sizeof(unsigned int) * 8; // Total bits in an unsigned int
 
-        // Total number of bits required to represent the grid
-        int totalBits = width * height;
-        // Total number of unsigned ints required to represent the grid
-        int totalInts = (totalBits + bitsInInt - 1) / bitsInInt;
-
-        unsigned int currentInt = 0; // Current integer being constructed
-        int bitPos = 0; // Current bit position in the currentInt
-
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                // Set the bit in currentInt if the cell is full
-                if (cells[i][j].cellType != EMPTY && cells[i][j].cellType != EXIT) {
-                    currentInt |= (1U << bitPos);
-                }
-                bitPos++;
-
-                // If the currentInt is full or we are at the last cell
-                if (bitPos == bitsInInt || (i == height - 1 && j == width - 1)) {
-                    // Save the currentInt and reset for the next
-                    result.push_back(currentInt);
-                    currentInt = 0; // Reset currentInt
-                    bitPos = 0; // Reset bit position
-                }
-            }
-        }
-
-        return result;
-    }
-    void printGridFromHash(const std::vector<unsigned int>& integerHash, int width, int height) {
-        int bitsInInt = sizeof(unsigned int) * 8;
-        int totalBits = width * height;
-
-        // Keep track of the current bit position across all integers
-        int currentBitIndex = 0;
-
-        for (int i = 0; i < height; ++i) {
-            std::string row;
-            for (int j = 0; j < width; ++j) {
-                // Find which integer and bit position within that integer corresponds to this cell
-                int intIndex = currentBitIndex / bitsInInt;
-                int bitPos = currentBitIndex % bitsInInt;
-
-                // Retrieve the correct integer from the hash
-                unsigned int value = integerHash[intIndex];
-
-                // Determine if the current cell is full ('#') or empty ('.') by checking the bit at bitPos
-                if (value & (1U << bitPos)) {
-                    row += '#';
-                } else {
-                    row += '.';
-                }
-
-                // Move to the next bit
-                currentBitIndex++;
-            }
-            // Print the row
-            std::cout << row << std::endl;
-        }
-    }
-
-    [[nodiscard]] std::vector<unsigned int> toIntegersBaseFour() const {
+     std::vector<unsigned int> toIntegersBaseFour() const {
         std::vector<unsigned int> result;
         const int bitsInInt = sizeof(unsigned int) * 8; // Total bits in an unsigned int
 
@@ -515,51 +525,6 @@ public:
         }
 
         return result;
-    }
-
-    void printGridFromHashBaseFour(const std::vector<unsigned int>& integerHash) {
-        int bitsInInt = sizeof(unsigned int) * 8;
-        // Since each cell is represented by 2 bits, totalBits is twice the cell count
-        int totalBits = width * height * 2;
-
-        // Keep track of the current bit position across all integers
-        int currentBitIndex = 0;
-
-        for (int i = 0; i < height; ++i) {
-            std::string row;
-            for (int j = 0; j < width; ++j) {
-                // Calculate which integer and bit position within that integer corresponds to this cell
-                int intIndex = currentBitIndex / bitsInInt;
-                int bitPos = (currentBitIndex % bitsInInt);
-
-                // Retrieve the correct integer from the hash
-                unsigned int value = integerHash[intIndex];
-
-                // Extract the two bits for the current cell's state
-                unsigned int cellState = (value >> bitPos) & 0b11; // Mask the two relevant bits
-
-                // Map the cellState to its character representation
-                switch (cellState) {
-                    case 0:
-                        row += '.';
-                        break;
-                    case 1:
-                        row += 'a';
-                        break;
-                    case 2:
-                        row += 'x';
-                        break;
-                    case 3:
-                        row += '#';
-                        break;
-                }
-
-                // Move to the next cell's bits
-                currentBitIndex += 2; // Increment by 2 because each cell uses 2 bits
-            }
-            // Print the row
-            std::cout << row << std::endl;
-        }
     }
 
     std::string getGridFromHashBaseFour(const std::vector<unsigned int>& integerHash) {
@@ -905,8 +870,6 @@ public:
 
                         if (cells[i-1][j].c != 'o' && cells[i+1][j].c != 'o' && cells[i][j-1].c != 'o'){
                             if (!deansCarInitialized){
-                                initialDeansCarX = j;
-                                initialDeansCarX = i;
                                 cars[kk] = Car(kk, j, i, false, 1);
                                 cars[kk].type = DEANSCAR;
                                 cells[i][j].carID = kk;
@@ -969,4 +932,249 @@ public:
 
 };
 
-#endif //DEANSCAR_GRID_H
+
+struct Node {
+    int x = 0;
+    int y = 0;
+    // Node position
+    int value = 0;
+    float gCost = 0;
+    float hCost = 0;
+    float fCost = 0;
+    Node* parent = nullptr;
+    Grid* originalGrid = nullptr;
+    Move prevMove = {0, 0, 0, BOTH, -1};
+
+    std::vector<unsigned int> hash;
+
+    Node()= default;
+
+    Node(Grid* oGrid, Move move){
+        originalGrid = oGrid;
+        prevMove = move;
+        hash = originalGrid->toIntegersBaseFour();
+
+    };
+
+    bool operator==(const Node& other) const {
+        return hash == other.hash;
+    }
+
+    void recomputeGrid(){
+        originalGrid->parseInputToGrid(originalGrid->getGridFromHashBaseFour(hash));
+    }
+
+    std::vector<Move> getNeighbours() {
+        std::vector<Move> moves = originalGrid->getPossibleMoves();
+        return moves;
+    }// Parent node in the path
+    // Calculate the F cost of a node
+    void calculateFCost() {
+        fCost = gCost + hCost;
+    }
+
+    bool isWon(){
+        return originalGrid->isWon();
+    }
+};
+
+struct NodeHasher {
+    std::size_t operator()(const Node* node) const {
+        std::size_t seed = 0;
+        for (unsigned int i : node->hash) {
+            seed ^= std::hash<unsigned int>{}(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};
+struct NodeEqual {
+    bool operator()(const Node* lhs, const Node* rhs) const {
+        return lhs->hash == rhs->hash;
+    }
+};
+
+
+class AStar {
+public:
+    std::vector<Node*> findPath(Node* startNode, Node* goalNode) {
+        openList.push_back(startNode);
+
+        while (!openList.empty()) {
+            Node* currentNode = getLowestFCostNode(openList);
+            if (currentNode == goalNode) {
+                return retracePath(startNode, goalNode);
+            }
+
+            openList.erase(std::remove(openList.begin(), openList.end(), currentNode), openList.end());
+            closedList.push_back(currentNode);
+
+            for (Node* neighbor : getNeighbors(currentNode)) {
+                if (std::find(closedList.begin(), closedList.end(), neighbor) != closedList.end())
+                    continue;
+
+                float newGCost = currentNode->gCost + getDistance(currentNode, neighbor);
+                if (newGCost < neighbor->gCost || std::find(openList.begin(), openList.end(), neighbor) == openList.end()) {
+                    neighbor->gCost = newGCost;
+                    neighbor->hCost = getDistance(neighbor, goalNode);
+                    neighbor->calculateFCost();
+                    neighbor->parent = currentNode;
+
+                    if (std::find(openList.begin(), openList.end(), neighbor) == openList.end()) {
+                        openList.push_back(neighbor);
+                    }
+                }
+            }
+        }
+
+        return {}; // Return empty path if no path is found
+    }
+    bool dfs(Node* node, std::vector<Move>& path, std::unordered_set<Node*, NodeHasher, NodeEqual>& visited) {
+        if (visited.find(node) != visited.end()) return false;
+
+        if (path.size() > node->originalGrid->movesLimit){
+            return false;
+        }
+//        std::cout << node->originalGrid->getGridFromHashBaseFour(node->hash) << "aa\n\n";
+
+        // Mark this node as visited
+        visited.insert(node);
+        // Add the current node to the path
+        path.push_back(node->prevMove);
+
+        // Check if the current node is the target node
+        if (node->isWon()) {
+            return true; // Return true to stop the search
+        }
+        int neighbourCount = 0;
+        Node neighbourNode;
+        int prevCarID = node->prevMove.carID;
+        // Recursively search in unvisited neighbours
+        for (Move neighbour : node->getNeighbours()) {
+
+            if (neighbour.carID == prevCarID &&( (neighbour.dir == MINUS && node->prevMove.dir == PLUS) || (neighbour.dir == PLUS && node->prevMove.dir == MINUS))){
+                continue;
+            }
+            if (neighbourCount == 0){
+                neighbourCount++;
+                node->originalGrid->moveCar(neighbour.x, neighbour.y, neighbour.n, neighbour.dir);
+                neighbourNode = Node(node->originalGrid, neighbour);
+            }
+            else {
+                node->recomputeGrid();
+                node->originalGrid->moveCar(neighbour.x, neighbour.y, neighbour.n, neighbour.dir);
+                neighbourNode = Node(node->originalGrid, neighbour);
+            }
+            if (dfs(&neighbourNode, path, visited)) {
+                return true; // If target is found in a subtree, return true to propagate the success back up
+            }
+
+        }
+
+        // Backtrack: If not found in this path, remove the current node from the path before returning
+        path.pop_back();
+        return false;
+    }
+
+    void movesListToOutput(std::vector<Move>& moves){
+        std::cout << moves.size()-1 << "\n";
+        int i = 0;
+        for (Move move: moves) {
+            if (i == 0){
+                i++;
+                continue;
+            }
+            if (i == moves.size()-1){
+                std::cout << move.x << " " << move.y << " " << move.letter << " " << move.n + 1 << "\n";
+            }else{
+                std::cout << move.x << " " << move.y << " " << move.letter << " " << move.n << "\n";
+            }
+            i++;
+        }
+    }
+
+
+private:
+    std::vector<Node*> openList;
+    std::vector<Node*> closedList;
+
+    // Function to get the node with the lowest F cost
+    Node* getLowestFCostNode(const std::vector<Node*>& list) {
+        Node* lowest = list[0];
+        for (Node* node : list) {
+            if (node->fCost < lowest->fCost) {
+                lowest = node;
+            }
+        }
+        return lowest;
+    }
+
+    // Function to retrace the path from the goal node back to the start node
+    std::vector<Node*> retracePath(Node* startNode, Node* endNode) {
+        std::vector<Node*> path;
+        Node* currentNode = endNode;
+
+        while (currentNode != startNode) {
+            path.push_back(currentNode);
+            currentNode = currentNode->parent;
+        }
+        std::reverse(path.begin(), path.end());
+        return path;
+    }
+
+    // Placeholder for a function to get a node's neighbors
+    std::vector<Node*> getNeighbors(Node* node) {
+        // Implement according to your grid/environment
+        std::vector<Node*> neighbors;
+        // Add neighbors to the list
+        return neighbors;
+    }
+
+    // Function to calculate the distance between two nodes
+    float getDistance(Node* nodeA, Node* nodeB) {
+        int dx = std::abs(nodeA->x - nodeB->x);
+        int dy = std::abs(nodeA->y - nodeB->y);
+        return std::sqrt(dx * dx + dy * dy);
+    }
+};
+class Solver {
+public:
+    Grid* grid = nullptr;
+    AStar aStar;
+    Node startNode;
+
+    Solver(){
+        startNode = Node();
+    }
+    explicit Solver(Grid* grid): grid(grid){
+        startNode = Node(grid, {0, 0, 0, PLUS, -1});
+    }
+    std::vector<Move> solveDFS(){
+        std::vector<Move> path;
+        std::unordered_set<Node*, NodeHasher, NodeEqual> visited;
+        bool found = aStar.dfs(&startNode, path, visited);
+        return path;
+    }
+};
+Grid grid;
+
+int main() {
+    std::string line;
+    std::stringstream input;
+    std::getline(std::cin, line);
+    input << line << "\n";
+
+    int rows, cols, extraInfo;
+    std::istringstream(line) >> cols >> rows >> extraInfo; // Adjust according to your input format.
+
+    for(int i = 0; i < rows; ++i) {
+        std::getline(std::cin, line);
+        input << line << "\n";
+    }
+    std::vector<Move> moves;
+    grid.parseInputToGrid(input.str());
+    Solver solver = Solver(&grid);
+    moves = solver.solveDFS();
+
+    solver.aStar.movesListToOutput(moves);
+    return 0;
+}

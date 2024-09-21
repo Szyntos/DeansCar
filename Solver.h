@@ -25,15 +25,15 @@ public:
 
     std::vector<Move> solveDFS(){
         std::vector<Move> path;
-        std::unordered_set<Node*, NodeHasher, NodeEqual> visited;
+        VisitedSet visited;
         bool found = aStar.dfs(&startNode, path, visited);
-        if (found){
-            for (const auto& move : path) {
-                std::cout << "Move - x: " << move.x << ", y: " << move.y
-                          << ", n: " << move.n << ", Direction: "
-                          << directionToString(move.dir) << std::endl;
-            }
-        }
+//        if (found){
+//            for (const auto& move : path) {
+//                std::cout << "Move - x: " << move.x << ", y: " << move.y
+//                          << ", n: " << move.n << ", Direction: "
+//                          << directionToString(move.dir) << std::endl;
+//            }
+//        }
 
         return path;
     }
